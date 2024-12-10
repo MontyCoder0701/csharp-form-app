@@ -2,20 +2,20 @@
 {
     internal class BankTransaction
     {
-        public int TranSeq;
-        public int AcctSeq;
-        public int? Balance100;
-        public int? Bcode;
-        public string Cid;
-        public string Date;
-        public string Description;
-        public int? Order;
-        public int? Pay100;
-        public int? Save100;
-        public string Time;
-        public string Trankind;
-        public int TransferSeq;
-        public string Where;
+        public int TranSeq { get; }
+        public int AcctSeq { get; }
+        public int? Balance100 { get; }
+        public int? Bcode { get; }
+        public string Cid { get; }
+        public string Date { get; }
+        public string Description { get; }
+        public int? Order { get; }
+        public int? Pay100 { get; }
+        public int? Save100 { get; }
+        public string Time { get; }
+        public string Trankind { get; }
+        public int TransferSeq { get; }
+        public string Where { get; }
 
         public BankTransaction(
             int tranSeq,

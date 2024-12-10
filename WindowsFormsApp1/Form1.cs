@@ -12,7 +12,6 @@ namespace WindowsFormsApp1
             InitializeTransactions();
         }
 
-
         private void InitializeTransactions()
         {
             List<BankTransaction> transactions = new List<BankTransaction>

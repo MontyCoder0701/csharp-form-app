@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace WindowsFormsApp1
@@ -8,12 +9,13 @@ namespace WindowsFormsApp1
         public Form1()
         {
             InitializeComponent();
+            InitializeTransactions();
         }
 
-        private void HandleExportButtonClick(object sender, EventArgs e)
+
+        private void InitializeTransactions()
         {
-            // TODO: 위치 분리하기
-            BankTransaction[] transactions = new BankTransaction[]
+            List<BankTransaction> transactions = new List<BankTransaction>
             {
                 new BankTransaction(
                     tranSeq: 1,
@@ -47,8 +49,13 @@ namespace WindowsFormsApp1
                     transferSeq: 2002,
                     where: "Branch1"
                 ),
-             };
+            };
 
+            dataGridView1.DataSource = transactions;
+        }
+
+        private void HandleExportButtonClick(object sender, EventArgs e)
+        {
             string data = @"[
                 { 'Name': 'Alice', 'Age': 25, 'City': 'New York' },
                 { 'Name': 'Bob', 'Age': 30, 'City': 'Los Angeles' },

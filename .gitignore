@@ -1,0 +1,27 @@
+# Build artifacts
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Temporary files
+*.tmp
+*.log
+~$*
+
+# Dependency directories
+packages/
+*.nupkg
+
+# NuGet restore
+project.lock.json
+project.fragment.lock.json
+
+# IDE specific
+*.idea/
+*.vscode/

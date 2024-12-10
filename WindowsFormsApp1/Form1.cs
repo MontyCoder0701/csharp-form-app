@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
+        private List<BankTransaction> transactions;
+
+
         public Form1()
         {
             InitializeComponent();
@@ -14,7 +18,7 @@ namespace WindowsFormsApp1
 
         private void InitializeTransactions()
         {
-            List<BankTransaction> transactions = new List<BankTransaction>
+            transactions = new List<BankTransaction>
             {
                 new BankTransaction(
                     tranSeq: 1,
@@ -55,13 +59,8 @@ namespace WindowsFormsApp1
 
         private void HandleExportButtonClick(object sender, EventArgs e)
         {
-            string data = @"[
-                { 'Name': 'Alice', 'Age': 25, 'City': 'New York' },
-                { 'Name': 'Bob', 'Age': 30, 'City': 'Los Angeles' },
-                { 'Name': 'Charlie', 'Age': 22, 'City': 'Chicago' }
-            ]";
-
-            string fileName = "엑셀파일임";
+            string data = JsonConvert.SerializeObject(transactions);
+            string fileName = "갖추_은행_거래내역";
             string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
             ExcelManager.ExportJsonToExcel(fileName, filePath, data);

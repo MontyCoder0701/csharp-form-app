@@ -72,6 +72,7 @@ namespace WindowsFormsApp1
                     try
                     {
                         string filePath = saveFileDialog.FileName;
+                        // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 추가
                         string data = JsonConvert.SerializeObject(transactions);
 
                         ExcelManager.ExportJsonToExcel(filePath, data);
@@ -99,6 +100,7 @@ namespace WindowsFormsApp1
                     {
                         string filePath = openFileDialog.FileName;
                         string data = ExcelManager.ImportExcelToJson(filePath);
+                        // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 변환
                         List<BankTransaction> importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data);
 
                         transactions.Clear();

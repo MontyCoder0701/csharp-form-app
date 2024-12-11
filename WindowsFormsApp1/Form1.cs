@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace WindowsFormsApp1
 {
@@ -19,6 +20,7 @@ namespace WindowsFormsApp1
 
         private void InitializeTransactions()
         {
+            // TODO: 스키마 기반 임시로 만든 거래내역 클래스
             transactions = new List<BankTransaction>
             {
                 new BankTransaction(
@@ -61,33 +63,92 @@ namespace WindowsFormsApp1
 
         private void HandleExportButtonClick(object sender, EventArgs e)
         {
-            // TODO: 경로 선택 창 추가
-            string data = JsonConvert.SerializeObject(transactions);
-            string fileName = "갖추_은행_거래내역";
-            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            // TODO: 데이터 없는 경우 버튼 disable 등 다른 처리 고려 가능
+            if (transactions.Count == 0)
+            {
+                MessageBox.Show("다운로드 가능한 데이터가 없습니다.");
+                return;
+            }
 
-            ExcelManager.ExportJsonToExcel(fileName, filePath, data);
-            // TODO: 실패 에러처리 및 중복파일 검사
-            MessageBox.Show("파일이 저장되었습니다.");
+
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
+                saveFileDialog.FileName = $"갖추_은행_거래내역_{DateTime.Now:yyyy-MM-dd}";
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // TODO: 에러핸들링 메세지 수정
+                    try
+                    {
+                        string filePath = saveFileDialog.FileName;
+                        string data = JsonConvert.SerializeObject(transactions);
+
+                        // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 추가
+                        ExcelManager.ExportJsonToExcel(filePath, data);
+
+                        MessageBox.Show("파일이 저장되었습니다.");
+                    }
+                    catch (Exception err)
+                    {
+                        MessageBox.Show($"엑셀 저장 중 문제가 발생했습니다. {err.Message}");
+                    }
+                }
+            }
         }
 
         private void HandleUploadButtonClick(object sender, EventArgs e)
         {
-            // TODO: 경로 선택 창 추가
-            string fileName = "갖추_은행_거래내역";
-            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string savePath = Path.Combine(filePath, $"{fileName}.xlsx");
+            // TODO: 데이터 덮어씌울지 결정 및 경고 멘트 등 수정
+            DialogResult result = MessageBox.Show(
+                "엑셀을 업로드하는 경우, 기존 데이터는 덮어씌워집니다. 진행하시겠습니까?",
+                "경고",
+                MessageBoxButtons.OKCancel,
+                MessageBoxIcon.Warning
+             );
 
+            if (result != DialogResult.OK)
+            {
+                return;
+            }
 
-            // TODO: 실패 에러처리
-            string data = ExcelManager.ImportExcelToJson(savePath);
-            var importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data);
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
 
-            transactions.Clear();
-            transactions.AddRange(importedTransactions);
-            transactionsBindingSource.ResetBindings();
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // TODO: 경우 별 에러핸들링 메세지 수정
+                    try
+                    {
+                        string filePath = openFileDialog.FileName;
+                        string data = ExcelManager.ImportExcelToJson(filePath);
+                        JArray jsonArray = JArray.Parse(data);
 
-            MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                        if (jsonArray.Any(item => item.Type == JTokenType.Object && !item.HasValues))
+                        {
+                            throw new JsonException();
+                        }
+
+                        // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 변환
+                        List<BankTransaction> importedTransactions = jsonArray.ToObject<List<BankTransaction>>();
+
+                        transactions.Clear();
+                        transactions.AddRange(importedTransactions);
+                        transactionsBindingSource.ResetBindings(false);
+
+                        MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                    }
+                    catch (JsonException)
+                    {
+                        MessageBox.Show("입력된 데이터의 형식이 잘못되었습니다. 제공된 기존 엑셀 형식에 맞게 수정해주세요.");
+                    }
+                    catch (Exception err)
+                    {
+                        MessageBox.Show($"엑셀 업로드 중 문제가 발생했습니다. {err.Message}");
+                    }
+                }
+            }
         }
     }
 }

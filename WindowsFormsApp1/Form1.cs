@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
@@ -80,21 +79,24 @@ namespace WindowsFormsApp1
 
         private void HandleUploadButtonClick(object sender, EventArgs e)
         {
-            // TODO: 경로 선택 창 추가
-            string fileName = "갖추_은행_거래내역";
-            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string savePath = Path.Combine(filePath, $"{fileName}.xlsx");
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
 
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string filePath = openFileDialog.FileName;
+                    // TODO: 에러핸들링
+                    string data = ExcelManager.ImportExcelToJson(filePath);
+                    var importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data);
 
-            // TODO: 실패 에러처리
-            string data = ExcelManager.ImportExcelToJson(savePath);
-            var importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data);
+                    transactions.Clear();
+                    transactions.AddRange(importedTransactions);
+                    transactionsBindingSource.ResetBindings(false);
 
-            transactions.Clear();
-            transactions.AddRange(importedTransactions);
-            transactionsBindingSource.ResetBindings(false);
-
-            MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                    MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                }
+            }
         }
     }
 }

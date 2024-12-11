@@ -85,7 +85,7 @@ namespace WindowsFormsApp1
 
             transactions.Clear();
             transactions.AddRange(importedTransactions);
-            transactionsBindingSource.ResetBindings();
+            transactionsBindingSource.ResetBindings(false);
 
             MessageBox.Show("새로운 데이터가 업로드되었습니다.");
         }

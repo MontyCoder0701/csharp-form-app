@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using ClosedXML.Excel;
 using Newtonsoft.Json.Linq;
 
@@ -9,29 +10,27 @@ namespace WindowsFormsApp1
         public static void ExportJsonToExcel(string filePath, string jsonData)
         {
 
-            var dataArray = JArray.Parse(jsonData);
-
-            using (var workbook = new XLWorkbook())
+            JArray dataArray = JArray.Parse(jsonData);
+            using (XLWorkbook workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add("Data");
-
-                var headers = dataArray[0] as JObject;
+                IXLWorksheet worksheet = workbook.Worksheets.Add();
+                JObject headers = dataArray[0] as JObject;
                 int col = 1;
-                foreach (var header in headers.Properties())
+                int row = 2;
+
+                foreach (JProperty header in headers.Properties())
                 {
                     worksheet.Cell(1, col++).Value = header.Name;
                 }
 
-                int row = 2;
-                foreach (var item in dataArray)
+                foreach (JToken item in dataArray)
                 {
                     col = 1;
-                    foreach (var value in item.Values())
+                    foreach (JToken value in item.Values())
                     {
-                        var cell = worksheet.Cell(row, col++);
-
-                        // TODO: Format 확인
-                        if (decimal.TryParse(value.ToString(), out var numericValue))
+                        IXLCell cell = worksheet.Cell(row, col++);
+                        // TODO: 엑셀 셀 양식 확인
+                        if (decimal.TryParse(value.ToString(), out decimal numericValue))
                         {
                             cell.Value = numericValue;
                             cell.Style.NumberFormat.Format = "0";
@@ -50,20 +49,19 @@ namespace WindowsFormsApp1
 
         public static string ImportExcelToJson(string filePath)
         {
-            using (var workbook = new XLWorkbook(filePath))
+            using (XLWorkbook workbook = new XLWorkbook(filePath))
             {
-                var worksheet = workbook.Worksheets.First();
-                var rows = worksheet.RowsUsed().Skip(1);
+                IXLWorksheet worksheet = workbook.Worksheets.First();
+                JArray dataArray = new JArray();
+                List<IXLRow> rows = worksheet.RowsUsed().Skip(1).ToList();
+                List<string> headers = worksheet.Row(1).CellsUsed().Select(c => c.GetValue<string>()).ToList();
 
-                var headers = worksheet.Row(1).CellsUsed().Select(c => c.GetValue<string>()).ToList();
-                var dataArray = new JArray();
-
-                foreach (var row in rows)
+                foreach (IXLRow row in rows)
                 {
-                    var obj = new JObject();
+                    JObject obj = new JObject();
                     for (int i = 0; i < headers.Count; i++)
                     {
-                        var cellValue = row.Cell(i + 1).Value.ToString();
+                        string cellValue = row.Cell(i + 1).Value.ToString();
                         obj[headers[i]] = cellValue;
                     }
                     dataArray.Add(obj);

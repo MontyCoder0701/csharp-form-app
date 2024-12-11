@@ -18,6 +18,7 @@ namespace WindowsFormsApp1
 
         private void InitializeTransactions()
         {
+            // TODO: 스키마 기반 임시로 만든 거래내역 클래스
             transactions = new List<BankTransaction>
             {
                 new BankTransaction(
@@ -67,12 +68,20 @@ namespace WindowsFormsApp1
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    string data = JsonConvert.SerializeObject(transactions);
-                    string path = saveFileDialog.FileName;
+                    // TODO: 에러핸들링 메세지 수정
+                    try
+                    {
+                        string filePath = saveFileDialog.FileName;
+                        string data = JsonConvert.SerializeObject(transactions);
 
-                    // TODO: 에러핸들링
-                    ExcelManager.ExportJsonToExcel(path, data);
-                    MessageBox.Show("파일이 저장되었습니다.");
+                        ExcelManager.ExportJsonToExcel(filePath, data);
+
+                        MessageBox.Show("파일이 저장되었습니다.");
+                    }
+                    catch (Exception err)
+                    {
+                        MessageBox.Show(err.Message);
+                    }
                 }
             }
         }
@@ -85,16 +94,23 @@ namespace WindowsFormsApp1
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    string filePath = openFileDialog.FileName;
-                    // TODO: 에러핸들링
-                    string data = ExcelManager.ImportExcelToJson(filePath);
-                    var importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data);
+                    // TODO: 경우 별 에러핸들링 메세지 수정
+                    try
+                    {
+                        string filePath = openFileDialog.FileName;
+                        string data = ExcelManager.ImportExcelToJson(filePath);
+                        List<BankTransaction> importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data);
 
-                    transactions.Clear();
-                    transactions.AddRange(importedTransactions);
-                    transactionsBindingSource.ResetBindings(false);
+                        transactions.Clear();
+                        transactions.AddRange(importedTransactions);
+                        transactionsBindingSource.ResetBindings(false);
 
-                    MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                        MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                    }
+                    catch (Exception err)
+                    {
+                        MessageBox.Show(err.Message);
+                    }
                 }
             }
         }

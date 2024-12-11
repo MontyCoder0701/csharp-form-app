@@ -29,7 +29,18 @@ namespace WindowsFormsApp1
                     col = 1;
                     foreach (var value in item.Values())
                     {
-                        worksheet.Cell(row, col++).Value = value.ToString();
+                        var cell = worksheet.Cell(row, col++);
+
+                        // TODO: Format 확인
+                        if (decimal.TryParse(value.ToString(), out var numericValue))
+                        {
+                            cell.Value = numericValue;
+                            cell.Style.NumberFormat.Format = "0";
+                        }
+                        else
+                        {
+                            cell.Value = value.ToString();
+                        }
                     }
                     row++;
                 }

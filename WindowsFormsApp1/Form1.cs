@@ -61,14 +61,21 @@ namespace WindowsFormsApp1
 
         private void HandleExportButtonClick(object sender, EventArgs e)
         {
-            // TODO: 경로 선택 창 추가
-            string data = JsonConvert.SerializeObject(transactions);
-            string fileName = "갖추_은행_거래내역";
-            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
+                saveFileDialog.FileName = "갖추_은행_거래내역";
 
-            ExcelManager.ExportJsonToExcel(fileName, filePath, data);
-            // TODO: 실패 에러처리 및 중복파일 검사
-            MessageBox.Show("파일이 저장되었습니다.");
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string data = JsonConvert.SerializeObject(transactions);
+                    string path = saveFileDialog.FileName;
+
+                    // TODO: 에러핸들링
+                    ExcelManager.ExportJsonToExcel(path, data);
+                    MessageBox.Show("파일이 저장되었습니다.");
+                }
+            }
         }
 
         private void HandleUploadButtonClick(object sender, EventArgs e)

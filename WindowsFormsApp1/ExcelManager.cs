@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using ClosedXML.Excel;
 using Newtonsoft.Json.Linq;
 
@@ -7,7 +6,7 @@ namespace WindowsFormsApp1
 {
     internal class ExcelManager
     {
-        public static void ExportJsonToExcel(string fileName, string filePath, string jsonData)
+        public static void ExportJsonToExcel(string filePath, string jsonData)
         {
 
             var dataArray = JArray.Parse(jsonData);
@@ -45,8 +44,7 @@ namespace WindowsFormsApp1
                     row++;
                 }
 
-                string savePath = Path.Combine(filePath, $"{fileName}.xlsx");
-                workbook.SaveAs(savePath);
+                workbook.SaveAs(filePath);
             }
         }
 

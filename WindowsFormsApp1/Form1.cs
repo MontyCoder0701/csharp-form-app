@@ -61,6 +61,14 @@ namespace WindowsFormsApp1
 
         private void HandleExportButtonClick(object sender, EventArgs e)
         {
+            // TODO: 데이터 없는 경우 버튼 disable 등 다른 처리 고려 가능
+            if (transactions.Count == 0)
+            {
+                MessageBox.Show("다운로드 가능한 데이터가 없습니다.");
+                return;
+            }
+
+
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
                 saveFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
@@ -89,6 +97,19 @@ namespace WindowsFormsApp1
 
         private void HandleUploadButtonClick(object sender, EventArgs e)
         {
+            // TODO: 데이터 덮어씌울지 결정 및 경고 멘트 등 수정
+            DialogResult result = MessageBox.Show(
+                "엑셀을 업로드하는 경우, 기존 데이터는 덮어씌워집니다. 진행하시겠습니까?",
+                "경고",
+                MessageBoxButtons.OKCancel,
+                MessageBoxIcon.Warning
+             );
+
+            if (result != DialogResult.OK)
+            {
+                return;
+            }
+
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";

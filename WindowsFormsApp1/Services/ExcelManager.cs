@@ -18,6 +18,7 @@ namespace WindowsFormsApp1
                 int col = 1;
                 int row = 2;
 
+                // TODO: 헤더셀 잠금처리 고려
                 foreach (JProperty header in headers.Properties())
                 {
                     worksheet.Cell(1, col++).Value = header.Name;

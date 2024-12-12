@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace WindowsFormsApp1
 {
@@ -80,9 +82,9 @@ namespace WindowsFormsApp1
                     try
                     {
                         string filePath = saveFileDialog.FileName;
-                        // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 추가
                         string data = JsonConvert.SerializeObject(transactions);
 
+                        // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 추가
                         ExcelManager.ExportJsonToExcel(filePath, data);
 
                         MessageBox.Show("파일이 저장되었습니다.");
@@ -121,8 +123,15 @@ namespace WindowsFormsApp1
                     {
                         string filePath = openFileDialog.FileName;
                         string data = ExcelManager.ImportExcelToJson(filePath);
+                        JArray jsonArray = JArray.Parse(data);
+
+                        if (jsonArray.Any(item => item.Type == JTokenType.Object && !item.HasValues))
+                        {
+                            throw new JsonException();
+                        }
+
                         // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 변환
-                        List<BankTransaction> importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data);
+                        List<BankTransaction> importedTransactions = jsonArray.ToObject<List<BankTransaction>>();
 
                         transactions.Clear();
                         transactions.AddRange(importedTransactions);
@@ -132,7 +141,7 @@ namespace WindowsFormsApp1
                     }
                     catch (JsonException)
                     {
-                        MessageBox.Show("입력된 데이터의 형식이 잘못되었습니다. 제공된 데이터 형식에 맞게 수정해주세요.");
+                        MessageBox.Show("입력된 데이터의 형식이 잘못되었습니다. 제공된 기존 엑셀 형식에 맞게 수정해주세요.");
                     }
                     catch (Exception err)
                     {

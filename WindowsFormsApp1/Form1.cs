@@ -64,7 +64,7 @@ namespace WindowsFormsApp1
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
                 saveFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
-                saveFileDialog.FileName = "갖추_은행_거래내역";
+                saveFileDialog.FileName = $"갖추_은행_거래내역_{DateTime.Now:yyyy-MM-dd}";
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
@@ -81,7 +81,7 @@ namespace WindowsFormsApp1
                     }
                     catch (Exception err)
                     {
-                        MessageBox.Show(err.Message);
+                        MessageBox.Show($"엑셀 저장 중 문제가 발생했습니다. {err.Message}");
                     }
                 }
             }
@@ -109,9 +109,13 @@ namespace WindowsFormsApp1
 
                         MessageBox.Show("새로운 데이터가 업로드되었습니다.");
                     }
+                    catch (JsonException)
+                    {
+                        MessageBox.Show("입력된 데이터의 형식이 잘못되었습니다. 제공된 데이터 형식에 맞게 수정해주세요.");
+                    }
                     catch (Exception err)
                     {
-                        MessageBox.Show(err.Message);
+                        MessageBox.Show($"엑셀 업로드 중 문제가 발생했습니다. {err.Message}");
                     }
                 }
             }

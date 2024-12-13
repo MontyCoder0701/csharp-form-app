@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace WindowsFormsApp1
 {
@@ -81,10 +80,10 @@ namespace WindowsFormsApp1
                     // TODO: 에러핸들링 메세지 수정
                     try
                     {
+                        // TODO: DTO 이용해서 변환 / 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 추가
                         string filePath = saveFileDialog.FileName;
                         string data = JsonConvert.SerializeObject(transactions);
 
-                        // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 추가
                         ExcelManager.ExportJsonToExcel(filePath, data);
 
                         MessageBox.Show("파일이 저장되었습니다.");
@@ -123,15 +122,15 @@ namespace WindowsFormsApp1
                     {
                         string filePath = openFileDialog.FileName;
                         string data = ExcelManager.ImportExcelToJson(filePath);
-                        JArray jsonArray = JArray.Parse(data);
 
-                        if (jsonArray.Any(item => item.Type == JTokenType.Object && !item.HasValues))
+                        // TODO: DTO 이용해서 변환 / 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 변환
+                        JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
+                        List<BankTransaction> importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data, settings);
+
+                        if (importedTransactions == null || importedTransactions.Any(transaction => transaction == null))
                         {
                             throw new JsonException();
                         }
-
-                        // TODO: 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 변환
-                        List<BankTransaction> importedTransactions = jsonArray.ToObject<List<BankTransaction>>();
 
                         transactions.Clear();
                         transactions.AddRange(importedTransactions);

@@ -3,86 +3,102 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using WindowsFormsApp1.Models;
 
 namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
-        private List<BankTransaction> transactions;
-        private BindingSource transactionsBindingSource;
+        private List<Employee> employees;
+        private BindingSource employeesBindingSource;
 
         public Form1()
         {
             InitializeComponent();
-            InitializeTransactions();
+            InitializeEmployees();
         }
 
-        private void InitializeTransactions()
+        private void InitializeEmployees()
         {
-            // TODO: 스키마 기반 임시로 만든 거래내역 클래스
-            transactions = new List<BankTransaction>
+            employees = new List<Employee>
             {
-                new BankTransaction(
-                    tranSeq: 1,
-                    acctSeq: 1001,
-                    balance100: 50000,
-                    bcode: 1234,
+                new Employee(
+                    emplSeq: 1,
+                    projCode: "P001",
                     cid: "CUST001",
-                    date: "2024-12-10",
-                    description: "Transaction 1 Description",
-                    order: 1,
-                    pay100: 2000,
-                    save100: 3000,
-                    time: "10:30 AM",
-                    trankind: "Debit",
-                    transferSeq: 2001,
-                    where: "ATM1"
+                    emplName: "이수정",
+                    uidnum7: "1234567",
+                    healthInsuranceDate: "2024-12-01",
+                    emplNum: "EMP001",
+                    grade: "Manager",
+                    department: "HR",
+                    salaryBcode: 101,
+                    salaryBname: "Bank A",
+                    salaryAcctnum: "123-456-789",
+                    allowanceBcode: 102,
+                    allowanceBname: "Bank B",
+                    allowanceAcctnum: "987-654-321",
+                    salaryAmt: 5000,
+                    salaryBaseYear: 2024,
+                    deductibleTax: 500,
+                    deductibleTaxBaseYear: 2024,
+                    employmentDate: "2020-01-15",
+                    isSafe: 1,
+                    registdate: "2024-12-01",
+                    registdateformat: "yyyy-MM-dd",
+                    memo: "First employee record"
                 ),
-                new BankTransaction(
-                    tranSeq: 2,
-                    acctSeq: 1002,
-                    balance100: 100000,
-                    bcode: 5678,
+                new Employee(
+                    emplSeq: 2,
+                    projCode: "P002",
                     cid: "CUST002",
-                    date: "2024-12-09",
-                    description: "Transaction 2 Description",
-                    order: 2,
-                    pay100: 5000,
-                    save100: 7000,
-                    time: "11:15 AM",
-                    trankind: "Credit",
-                    transferSeq: 2002,
-                    where: "Branch1"
-                ),
+                    emplName: "이수경",
+                    uidnum7: "7654321",
+                    healthInsuranceDate: "2024-12-05",
+                    emplNum: "EMP002",
+                    grade: "Staff",
+                    department: "Finance",
+                    salaryBcode: 103,
+                    salaryBname: "Bank C",
+                    salaryAcctnum: "321-654-987",
+                    allowanceBcode: 104,
+                    allowanceBname: "Bank D",
+                    allowanceAcctnum: "789-123-456",
+                    salaryAmt: 4000,
+                    salaryBaseYear: 2024,
+                    deductibleTax: 400,
+                    deductibleTaxBaseYear: 2024,
+                    employmentDate: "2021-06-01",
+                    isSafe: 0,
+                    registdate: "2024-12-01",
+                    registdateformat: "yyyy-MM-dd",
+                    memo: "Second employee record"
+                )
             };
 
-            transactionsBindingSource = new BindingSource { DataSource = transactions };
-            dataGridView1.DataSource = transactionsBindingSource;
+            employeesBindingSource = new BindingSource { DataSource = employees };
+            dataGridView1.DataSource = employeesBindingSource;
         }
 
         private void HandleExportButtonClick(object sender, EventArgs e)
         {
-            // TODO: 데이터 없는 경우 버튼 disable 등 다른 처리 고려 가능
-            if (transactions.Count == 0)
+            if (employees.Count == 0)
             {
                 MessageBox.Show("다운로드 가능한 데이터가 없습니다.");
                 return;
             }
 
-
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
                 saveFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
-                saveFileDialog.FileName = $"갖추_은행_거래내역_{DateTime.Now:yyyy-MM-dd}";
+                saveFileDialog.FileName = $"갖추_직원정보_{DateTime.Now:yyyy-MM-dd}";
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    // TODO: 에러핸들링 메세지 수정
                     try
                     {
-                        // TODO: DTO 이용해서 변환 / 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 추가
                         string filePath = saveFileDialog.FileName;
-                        string data = JsonConvert.SerializeObject(transactions);
+                        string data = JsonConvert.SerializeObject(employees);
 
                         ExcelManager.ExportJsonToExcel(filePath, data);
 
@@ -98,7 +114,6 @@ namespace WindowsFormsApp1
 
         private void HandleUploadButtonClick(object sender, EventArgs e)
         {
-            // TODO: 데이터 덮어씌울지 결정 및 경고 멘트 등 수정
             DialogResult result = MessageBox.Show(
                 "엑셀을 업로드하는 경우, 기존 데이터는 덮어씌워집니다. 진행하시겠습니까?",
                 "경고",
@@ -117,24 +132,22 @@ namespace WindowsFormsApp1
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    // TODO: 경우 별 에러핸들링 메세지 수정
                     try
                     {
                         string filePath = openFileDialog.FileName;
                         string data = ExcelManager.ImportExcelToJson(filePath);
 
-                        // TODO: DTO 이용해서 변환 / 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 변환
                         JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
-                        List<BankTransaction> importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data, settings);
+                        List<Employee> importedEmployees = JsonConvert.DeserializeObject<List<Employee>>(data, settings);
 
-                        if (importedTransactions == null || importedTransactions.Any(transaction => transaction == null))
+                        if (importedEmployees == null || importedEmployees.Any(employee => employee == null))
                         {
                             throw new JsonException();
                         }
 
-                        transactions.Clear();
-                        transactions.AddRange(importedTransactions);
-                        transactionsBindingSource.ResetBindings(false);
+                        employees.Clear();
+                        employees.AddRange(importedEmployees);
+                        employeesBindingSource.ResetBindings(false);
 
                         MessageBox.Show("새로운 데이터가 업로드되었습니다.");
                     }

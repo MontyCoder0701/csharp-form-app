@@ -87,8 +87,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models/BankTransaction.cs" />
-    <Compile Include="Services/ExcelManager.cs" />
+    <Compile Include="Models\BankTransaction.cs" />
+    <Compile Include="Services\ExcelManager.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

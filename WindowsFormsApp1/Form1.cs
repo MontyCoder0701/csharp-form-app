@@ -27,7 +27,7 @@ namespace WindowsFormsApp1
                     projCode: "P001",
                     cid: "CUST001",
                     emplName: "이수정",
-                    uidnum7: "1234567",
+                    uidnum7: "9807012",
                     emplNum: "EMP001",
                     salaryBcode: 101,
                     salaryBname: "Bank A",
@@ -44,7 +44,7 @@ namespace WindowsFormsApp1
                     projCode: "P002",
                     cid: "CUST002",
                     emplName: "이수경",
-                    uidnum7: "7654321",
+                    uidnum7: "0208202",
                     emplNum: "EMP002",
                     salaryBcode: 103,
                     salaryBname: "Bank C",
@@ -80,9 +80,30 @@ namespace WindowsFormsApp1
                     try
                     {
                         string filePath = saveFileDialog.FileName;
-                        string data = JsonConvert.SerializeObject(employees);
 
-                        ExcelManager.ExportJsonToExcel(filePath, data);
+                        // 테이블 데이터 넘기듯 넘기면 됌
+                        List<string> headers = new List<string>
+                        {
+                            "직원 이름", "주민등록번호", "직원 번호", "은행 코드",
+                            "은행 이름", "계좌 번호", "급여 금액", "기준 연도",
+                            "고용 날짜", "안전 여부"
+                        };
+
+                        List<List<dynamic>> data = employees.Select(emp => new List<dynamic>
+                        {
+                            emp.EmplName,
+                            emp.GetDisplayUidnum7,
+                            emp.EmplNum,
+                            emp.SalaryBcode,
+                            emp.SalaryBname,
+                            emp.SalaryAcctnum,
+                            emp.SalaryAmt,
+                            emp.SalaryBaseYear,
+                            emp.EmploymentDate,
+                            emp.GetDisplayIsSafe,
+                        }).ToList();
+
+                        ExcelManager.ExportDataToExcel(filePath, headers, data);
 
                         MessageBox.Show("파일이 저장되었습니다.");
                     }

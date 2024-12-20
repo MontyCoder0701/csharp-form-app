@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using ClosedXML.Excel;
 using Newtonsoft.Json.Linq;
@@ -8,9 +7,35 @@ namespace WindowsFormsApp1
 {
     internal class ExcelManager
     {
+
+        public static void ExportDataToExcel(string filePath, List<string> headers, List<List<dynamic>> data)
+        {
+            using (XLWorkbook workbook = new XLWorkbook())
+            {
+                IXLWorksheet worksheet = workbook.Worksheets.Add();
+
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    IXLCell headerCell = worksheet.Cell(1, i + 1);
+                    headerCell.Value = headers[i];
+                    headerCell.Style.Fill.BackgroundColor = XLColor.LightGray;
+                }
+
+                for (int row = 0; row < data.Count; row++)
+                {
+                    for (int col = 0; col < data[row].Count; col++)
+                    {
+                        worksheet.Cell(row + 2, col + 1).Value = data[row][col];
+                    }
+                }
+
+                workbook.SaveAs(filePath);
+            }
+        }
+
+
         public static void ExportJsonToExcel(string filePath, string jsonData)
         {
-
             JArray dataArray = JArray.Parse(jsonData);
             using (XLWorkbook workbook = new XLWorkbook())
             {
@@ -19,14 +44,11 @@ namespace WindowsFormsApp1
                 int col = 1;
                 int row = 2;
 
-                // TODO: 헤더셀 및 엑셀 구조 잠금 처리 논의 (서식도 고정처리)
-                worksheet.Style.Protection.Locked = false;
 
                 foreach (JProperty header in headers.Properties())
                 {
                     IXLCell headerCell = worksheet.Cell(1, col++);
                     headerCell.Value = header.Name;
-                    headerCell.Style.Protection.Locked = true;
                     headerCell.Style.Fill.BackgroundColor = XLColor.LightGray;
                 }
 
@@ -49,18 +71,6 @@ namespace WindowsFormsApp1
                     }
                     row++;
                 }
-
-                // TODO: 헤더셀 및 엑셀 구조 잠금 처리 논의 (서식도 고정처리)
-                string randomPassword = new Random().Next(1000, 10000).ToString();
-
-                worksheet.Protect(randomPassword)
-                 .AllowElement(XLSheetProtectionElements.SelectUnlockedCells)
-                 .AllowElement(XLSheetProtectionElements.FormatColumns)
-                 .AllowElement(XLSheetProtectionElements.InsertRows)
-                 .AllowElement(XLSheetProtectionElements.DeleteRows);
-
-                workbook.Protect(randomPassword)
-                    .DisallowElement(XLWorkbookProtectionElements.Structure);
 
                 workbook.SaveAs(filePath);
             }

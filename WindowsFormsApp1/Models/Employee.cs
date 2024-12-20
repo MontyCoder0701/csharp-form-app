@@ -18,6 +18,11 @@
         public string Registdate { get; }
         public string Registdateformat { get; }
 
+        public string GetDisplayUidnum7 => Uidnum7.Substring(0, 6) + "-" + Uidnum7.Substring(6, 1) + "******";
+
+        public string GetDisplayIsSafe => IsSafe == 0 ? "O" : "X";
+
+
         public Employee(
             int emplSeq,
             string projCode,

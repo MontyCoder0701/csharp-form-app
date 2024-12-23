@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ClosedXML.Excel;
 using Newtonsoft.Json.Linq;
@@ -9,41 +10,31 @@ namespace WindowsFormsApp1
     {
         public static void ExportJsonToExcel(string filePath, string jsonData)
         {
-
             JArray dataArray = JArray.Parse(jsonData);
+
             using (XLWorkbook workbook = new XLWorkbook())
             {
                 IXLWorksheet worksheet = workbook.Worksheets.Add();
-                JObject headers = dataArray[0] as JObject;
-                int col = 1;
-                int row = 2;
 
-                foreach (JProperty header in headers.Properties())
+                var headers = dataArray.First?.ToObject<JObject>()?.Properties().Select(p => p.Name).ToList();
+                if (headers == null || !headers.Any())
                 {
-                    IXLCell headerCell = worksheet.Cell(1, col++);
-                    headerCell.Value = header.Name;
-                    headerCell.Style.Fill.BackgroundColor = XLColor.LightGray;
+                    throw new ArgumentException();
                 }
 
-                foreach (JToken item in dataArray)
+                headers.Select((header, i) => worksheet.Cell(1, i + 1).Value = header).ToList();
+
+                for (int rowIndex = 0; rowIndex < dataArray.Count; rowIndex++)
                 {
-                    col = 1;
-                    foreach (JToken value in item.Values())
+                    JObject rowObj = (JObject)dataArray[rowIndex];
+                    for (int colIndex = 0; colIndex < headers.Count; colIndex++)
                     {
-                        IXLCell cell = worksheet.Cell(row, col++);
-                        // TODO: 엑셀 셀 서식 확인 (소수점, 날짜, 숫자 등)
-                        if (decimal.TryParse(value.ToString(), out decimal numericValue))
-                        {
-                            cell.Value = numericValue;
-                            cell.Style.NumberFormat.Format = "0";
-                        }
-                        else
-                        {
-                            cell.Value = value.ToString();
-                        }
+                        string header = headers[colIndex];
+                        worksheet.Cell(rowIndex + 2, colIndex + 1).Value = rowObj[header]?.ToString() ?? string.Empty;
                     }
-                    row++;
                 }
+
+                worksheet.Range(1, 1, dataArray.Count + 1, headers.Count).CreateTable();
 
                 workbook.SaveAs(filePath);
             }

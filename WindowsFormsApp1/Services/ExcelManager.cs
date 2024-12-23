@@ -8,7 +8,6 @@ namespace WindowsFormsApp1
 {
     internal class ExcelManager
     {
-
         public static void ExportJsonToExcel(string filePath, string jsonData)
         {
             JArray dataArray = JArray.Parse(jsonData);
@@ -40,7 +39,6 @@ namespace WindowsFormsApp1
                 workbook.SaveAs(filePath);
             }
         }
-
 
         public static string ImportExcelToJson(string filePath)
         {

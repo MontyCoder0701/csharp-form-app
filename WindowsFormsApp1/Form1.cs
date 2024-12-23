@@ -80,7 +80,6 @@ namespace WindowsFormsApp1
                     // TODO: 에러핸들링 메세지 수정
                     try
                     {
-                        // TODO: DTO 이용해서 변환 / 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 추가
                         string filePath = saveFileDialog.FileName;
                         string data = JsonConvert.SerializeObject(transactions);
 
@@ -123,7 +122,6 @@ namespace WindowsFormsApp1
                         string filePath = openFileDialog.FileName;
                         string data = ExcelManager.ImportExcelToJson(filePath);
 
-                        // TODO: DTO 이용해서 변환 / 번역 매핑, 날짜 형태, 소수점 형태 등 포매팅 변환
                         JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
                         List<BankTransaction> importedTransactions = JsonConvert.DeserializeObject<List<BankTransaction>>(data, settings);
 

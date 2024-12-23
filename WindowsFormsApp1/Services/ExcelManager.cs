@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using ClosedXML.Excel;
 using Newtonsoft.Json.Linq;
@@ -19,14 +18,10 @@ namespace WindowsFormsApp1
                 int col = 1;
                 int row = 2;
 
-                // TODO: 헤더셀 및 엑셀 구조 잠금 처리 논의 (서식도 고정처리)
-                worksheet.Style.Protection.Locked = false;
-
                 foreach (JProperty header in headers.Properties())
                 {
                     IXLCell headerCell = worksheet.Cell(1, col++);
                     headerCell.Value = header.Name;
-                    headerCell.Style.Protection.Locked = true;
                     headerCell.Style.Fill.BackgroundColor = XLColor.LightGray;
                 }
 
@@ -49,18 +44,6 @@ namespace WindowsFormsApp1
                     }
                     row++;
                 }
-
-                // TODO: 헤더셀 및 엑셀 구조 잠금 처리 논의 (서식도 고정처리)
-                string randomPassword = new Random().Next(1000, 10000).ToString();
-
-                worksheet.Protect(randomPassword)
-                 .AllowElement(XLSheetProtectionElements.SelectUnlockedCells)
-                 .AllowElement(XLSheetProtectionElements.FormatColumns)
-                 .AllowElement(XLSheetProtectionElements.InsertRows)
-                 .AllowElement(XLSheetProtectionElements.DeleteRows);
-
-                workbook.Protect(randomPassword)
-                    .DisallowElement(XLWorkbookProtectionElements.Structure);
 
                 workbook.SaveAs(filePath);
             }

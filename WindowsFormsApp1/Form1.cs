@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using ClosedXML.Excel;
 using Newtonsoft.Json;
 using WindowsFormsApp1.Models;
 
@@ -11,6 +12,19 @@ namespace WindowsFormsApp1
     {
         private List<Employee> employees;
         private BindingSource employeesBindingSource;
+
+        private static readonly Dictionary<string, string> ExcelDictionary = new Dictionary<string, string>()
+        {
+            { "EmplName", "직원 이름" },
+            { "DisplayUidnum7", "주민등록번호 (앞 7자리)" },
+            { "EmplNum", "직원 번호" },
+            { "SalaryBname", "은행 이름" },
+            { "SalaryAcctnum", "계좌 번호" },
+            { "SalaryAmt", "급여 금액" },
+            { "SalaryBaseYear", "기준 연도" },
+            { "EmploymentDate", "고용 날짜" },
+            { "DisplayIsSafe", "안전 여부 (O/X)" }
+        };
 
         public Form1()
         {
@@ -24,8 +38,7 @@ namespace WindowsFormsApp1
             {
                 new Employee(
                     emplSeq: 1,
-                    projCode: "P001",
-                    cid: "CUST001",
+                    cid: "GOTCHOO_1",
                     emplName: "이수정",
                     uidnum7: "9807012",
                     emplNum: "EMP001",
@@ -41,8 +54,7 @@ namespace WindowsFormsApp1
                 ),
                 new Employee(
                     emplSeq: 2,
-                    projCode: "P002",
-                    cid: "CUST002",
+                    cid: "GOTCHOO_1",
                     emplName: "이수경",
                     uidnum7: "0208202",
                     emplNum: "EMP002",
@@ -81,29 +93,24 @@ namespace WindowsFormsApp1
                     {
                         string filePath = saveFileDialog.FileName;
 
-                        // 테이블 데이터 넘기듯 넘기면 됌
-                        List<string> headers = new List<string>
+                        List<EmployeeExcelDto> excelDtos = employees.Select(emp => new EmployeeExcelDto
                         {
-                            "직원 이름", "주민등록번호", "직원 번호", "은행 코드",
-                            "은행 이름", "계좌 번호", "급여 금액", "기준 연도",
-                            "고용 날짜", "안전 여부"
-                        };
-
-                        List<List<dynamic>> data = employees.Select(emp => new List<dynamic>
-                        {
-                            emp.EmplName,
-                            emp.GetDisplayUidnum7,
-                            emp.EmplNum,
-                            emp.SalaryBcode,
-                            emp.SalaryBname,
-                            emp.SalaryAcctnum,
-                            emp.SalaryAmt,
-                            emp.SalaryBaseYear,
-                            emp.EmploymentDate,
-                            emp.GetDisplayIsSafe,
+                            EmplName = emp.EmplName,
+                            DisplayUidnum7 = emp.GetDisplayUidnum7,
+                            EmplNum = emp.EmplNum,
+                            SalaryBname = emp.SalaryBname,
+                            SalaryAcctnum = emp.SalaryAcctnum,
+                            SalaryAmt = emp.SalaryAmt,
+                            SalaryBaseYear = emp.SalaryBaseYear,
+                            EmploymentDate = emp.EmploymentDate,
+                            DisplayIsSafe = emp.GetDisplayIsSafe
                         }).ToList();
 
-                        ExcelManager.ExportDataToExcel(filePath, headers, data);
+                        string jsonData = JsonConvert.SerializeObject(excelDtos);
+
+                        ExcelDictionary.ToList().ForEach(kv => jsonData = jsonData.Replace(kv.Key, kv.Value));
+
+                        ExcelManager.ExportJsonToExcel(filePath, jsonData);
 
                         MessageBox.Show("파일이 저장되었습니다.");
                     }
@@ -122,7 +129,7 @@ namespace WindowsFormsApp1
                 "경고",
                 MessageBoxButtons.OKCancel,
                 MessageBoxIcon.Warning
-             );
+            );
 
             if (result != DialogResult.OK)
             {
@@ -138,23 +145,71 @@ namespace WindowsFormsApp1
                     try
                     {
                         string filePath = openFileDialog.FileName;
-                        string data = ExcelManager.ImportExcelToJson(filePath);
+                        string jsonData = ExcelManager.ImportExcelToJson(filePath);
+
+                        ExcelDictionary.ToList().ForEach(kv => jsonData = jsonData.Replace(kv.Value, kv.Key));
 
                         JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
-                        List<Employee> importedEmployees = JsonConvert.DeserializeObject<List<Employee>>(data, settings);
+                        List<EmployeeExcelDto> newEmployeeDtos = JsonConvert.DeserializeObject<List<EmployeeExcelDto>>(jsonData, settings);
 
-                        if (importedEmployees == null || importedEmployees.Any(employee => employee == null))
+                        if (newEmployeeDtos == null || !newEmployeeDtos.Any())
                         {
-                            throw new JsonException();
+                            throw new FormatException();
                         }
 
-                        employees.Clear();
-                        employees.AddRange(importedEmployees);
+                        HashSet<(string EmplName, string Uidnum7)> existingEmployeeIds = employees
+                            .Select(emp => (emp.EmplName, emp.Uidnum7))
+                            .ToHashSet();
+
+                        HashSet<(string EmplName, string Uidnum7)> newEmployeeIds = newEmployeeDtos
+                            .Select(dto => (dto.EmplName, dto.Uidnum7))
+                            .ToHashSet();
+
+                        employees.RemoveAll(emp => !newEmployeeIds.Contains((emp.EmplName, emp.Uidnum7)));
+
+                        foreach (EmployeeExcelDto dto in newEmployeeDtos)
+                        {
+                            Employee existingEmployee = employees.FirstOrDefault(emp =>
+                                emp.EmplName == dto.EmplName && emp.Uidnum7 == dto.Uidnum7);
+
+                            if (existingEmployee != null)
+                            {
+                                existingEmployee.EmplNum = dto.EmplNum;
+                                existingEmployee.SalaryBname = dto.SalaryBname;
+                                existingEmployee.SalaryAcctnum = dto.SalaryAcctnum;
+                                existingEmployee.SalaryAmt = dto.SalaryAmt;
+                                existingEmployee.SalaryBaseYear = dto.SalaryBaseYear;
+                                existingEmployee.EmploymentDate = dto.EmploymentDate;
+                                existingEmployee.IsSafe = dto.IsSafe;
+                            }
+                            else
+                            {
+                                Employee newEmployee = new Employee(
+                                    emplSeq: employees.Any() ? employees.Max(emp => emp.EmplSeq) + 1 : 1,
+                                    cid: "GOTCHOO_1",
+                                    emplName: dto.EmplName,
+                                    uidnum7: dto.Uidnum7,
+                                    emplNum: dto.EmplNum,
+                                    salaryBcode: 0,
+                                    salaryBname: dto.SalaryBname,
+                                    salaryAcctnum: dto.SalaryAcctnum,
+                                    salaryAmt: dto.SalaryAmt,
+                                    salaryBaseYear: dto.SalaryBaseYear,
+                                    employmentDate: dto.EmploymentDate,
+                                    isSafe: dto.IsSafe,
+                                    registdate: DateTime.Now.ToString("yyyy-MM-dd"),
+                                    registdateformat: "yyyy-MM-dd"
+                                );
+
+                                employees.Add(newEmployee);
+                            }
+                        }
+
                         employeesBindingSource.ResetBindings(false);
 
                         MessageBox.Show("새로운 데이터가 업로드되었습니다.");
                     }
-                    catch (JsonException)
+                    catch (JsonSerializationException)
                     {
                         MessageBox.Show("입력된 데이터의 형식이 잘못되었습니다. 제공된 기존 엑셀 형식에 맞게 수정해주세요.");
                     }

@@ -1,31 +1,32 @@
-﻿namespace WindowsFormsApp1.Models
+﻿using Newtonsoft.Json;
+
+namespace WindowsFormsApp1.Models
 {
     internal class Employee
     {
         public int EmplSeq { get; }
         public string ProjCode { get; }
         public string Cid { get; }
-        public string EmplName { get; }
+        public string EmplName { get; set; }
         public string Uidnum7 { get; }
-        public string EmplNum { get; }
+        public string EmplNum { get; set; }
         public int SalaryBcode { get; }
-        public string SalaryBname { get; }
-        public string SalaryAcctnum { get; }
-        public int SalaryAmt { get; }
-        public int SalaryBaseYear { get; }
-        public string EmploymentDate { get; }
-        public int IsSafe { get; }
+        public string SalaryBname { get; set; }
+        public string SalaryAcctnum { get; set; }
+        public int SalaryAmt { get; set; }
+        public int SalaryBaseYear { get; set; }
+        public string EmploymentDate { get; set; }
+        public int IsSafe { get; set; }
         public string Registdate { get; }
         public string Registdateformat { get; }
 
         public string GetDisplayUidnum7 => Uidnum7.Substring(0, 6) + "-" + Uidnum7.Substring(6, 1) + "******";
 
-        public string GetDisplayIsSafe => IsSafe == 0 ? "O" : "X";
+        public string GetDisplayIsSafe => IsSafe == 1 ? "O" : "X";
 
 
         public Employee(
             int emplSeq,
-            string projCode,
             string cid,
             string emplName,
             string uidnum7,
@@ -42,7 +43,7 @@
         )
         {
             EmplSeq = emplSeq;
-            ProjCode = projCode;
+            ProjCode = "GOTCHOO";
             Cid = cid;
             EmplName = emplName;
             Uidnum7 = uidnum7;
@@ -59,4 +60,30 @@
         }
     }
 
+    internal class EmployeeExcelDto
+    {
+        public string EmplName { get; set; }
+
+        public string DisplayUidnum7 { get; set; }
+
+        [JsonIgnore]
+        public string Uidnum7 => DisplayUidnum7.Replace("-", "").Substring(0, 7);
+
+        public string EmplNum { get; set; }
+
+        public string SalaryBname { get; set; }
+
+        public string SalaryAcctnum { get; set; }
+
+        public int SalaryAmt { get; set; }
+
+        public int SalaryBaseYear { get; set; }
+
+        public string EmploymentDate { get; set; }
+
+        public string DisplayIsSafe { get; set; }
+
+        [JsonIgnore]
+        public int IsSafe => DisplayIsSafe == "O" ? 1 : 0;
+    }
 }

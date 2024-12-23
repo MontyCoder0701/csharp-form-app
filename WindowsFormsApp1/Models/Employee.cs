@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace WindowsFormsApp1.Models
 {
@@ -10,8 +12,20 @@ namespace WindowsFormsApp1.Models
         public string EmplName { get; set; }
         public string Uidnum7 { get; }
         public string EmplNum { get; set; }
-        public int SalaryBcode { get; }
-        public string SalaryBname { get; set; }
+
+        private int _salaryBcode;
+
+        public int SalaryBcode
+        {
+            get => _salaryBcode;
+            set
+            {
+                _salaryBcode = value;
+                SalaryBname = bCodeToName.TryGetValue(value, out var name) ? name : "";
+            }
+        }
+
+        public string SalaryBname { get; private set; }
         public string SalaryAcctnum { get; set; }
         public int SalaryAmt { get; set; }
         public int SalaryBaseYear { get; set; }
@@ -24,6 +38,14 @@ namespace WindowsFormsApp1.Models
 
         public string GetDisplayIsSafe => IsSafe == 1 ? "O" : "X";
 
+        public static readonly Dictionary<int, string> bCodeToName = new Dictionary<int, string>()
+        {
+            { 101, "우리" },
+            { 102, "신한" },
+            { 103, "국민" },
+            { 104, "하나" },
+            { 105, "농협" }
+        };
 
         public Employee(
             int emplSeq,
@@ -32,7 +54,6 @@ namespace WindowsFormsApp1.Models
             string uidnum7,
             string emplNum,
             int salaryBcode,
-            string salaryBname,
             string salaryAcctnum,
             int salaryAmt,
             int salaryBaseYear,
@@ -49,7 +70,7 @@ namespace WindowsFormsApp1.Models
             Uidnum7 = uidnum7;
             EmplNum = emplNum;
             SalaryBcode = salaryBcode;
-            SalaryBname = salaryBname;
+            SalaryBname = bCodeToName.TryGetValue(salaryBcode, out var name) ? name : "";
             SalaryAcctnum = salaryAcctnum;
             SalaryAmt = salaryAmt;
             SalaryBaseYear = salaryBaseYear;
@@ -70,6 +91,9 @@ namespace WindowsFormsApp1.Models
         public string Uidnum7 => DisplayUidnum7.Replace("-", "").Substring(0, 7);
 
         public string EmplNum { get; set; }
+
+        [JsonIgnore]
+        public int SalaryBcode => Employee.bCodeToName.FirstOrDefault(x => x.Value == SalaryBname.Trim()).Key;
 
         public string SalaryBname { get; set; }
 

@@ -13,7 +13,7 @@ namespace WindowsFormsApp1
         private List<Employee> employees;
         private BindingSource employeesBindingSource;
 
-        private static readonly Dictionary<string, string> ExcelDictionary = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> ExcelHeaderDictionary = new Dictionary<string, string>()
         {
             { "EmplName", "직원 이름" },
             { "DisplayUidnum7", "주민등록번호 (앞 7자리)" },
@@ -43,7 +43,6 @@ namespace WindowsFormsApp1
                     uidnum7: "9807012",
                     emplNum: "EMP001",
                     salaryBcode: 101,
-                    salaryBname: "Bank A",
                     salaryAcctnum: "123-456-789",
                     salaryAmt: 5000,
                     salaryBaseYear: 2024,
@@ -59,7 +58,6 @@ namespace WindowsFormsApp1
                     uidnum7: "0208202",
                     emplNum: "EMP002",
                     salaryBcode: 103,
-                    salaryBname: "Bank C",
                     salaryAcctnum: "321-654-987",
                     salaryAmt: 4000,
                     salaryBaseYear: 2024,
@@ -108,7 +106,7 @@ namespace WindowsFormsApp1
 
                         string jsonData = JsonConvert.SerializeObject(excelDtos);
 
-                        ExcelDictionary.ToList().ForEach(kv => jsonData = jsonData.Replace(kv.Key, kv.Value));
+                        jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Key, kv.Value));
 
                         ExcelManager.ExportJsonToExcel(filePath, jsonData);
 
@@ -147,7 +145,7 @@ namespace WindowsFormsApp1
                         string filePath = openFileDialog.FileName;
                         string jsonData = ExcelManager.ImportExcelToJson(filePath);
 
-                        ExcelDictionary.ToList().ForEach(kv => jsonData = jsonData.Replace(kv.Value, kv.Key));
+                        jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Value, kv.Key));
 
                         JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
                         List<EmployeeExcelDto> newEmployeeDtos = JsonConvert.DeserializeObject<List<EmployeeExcelDto>>(jsonData, settings);
@@ -175,7 +173,7 @@ namespace WindowsFormsApp1
                             if (existingEmployee != null)
                             {
                                 existingEmployee.EmplNum = dto.EmplNum;
-                                existingEmployee.SalaryBname = dto.SalaryBname;
+                                existingEmployee.SalaryBcode = dto.SalaryBcode;
                                 existingEmployee.SalaryAcctnum = dto.SalaryAcctnum;
                                 existingEmployee.SalaryAmt = dto.SalaryAmt;
                                 existingEmployee.SalaryBaseYear = dto.SalaryBaseYear;
@@ -190,8 +188,7 @@ namespace WindowsFormsApp1
                                     emplName: dto.EmplName,
                                     uidnum7: dto.Uidnum7,
                                     emplNum: dto.EmplNum,
-                                    salaryBcode: 0,
-                                    salaryBname: dto.SalaryBname,
+                                    salaryBcode: dto.SalaryBcode,
                                     salaryAcctnum: dto.SalaryAcctnum,
                                     salaryAmt: dto.SalaryAmt,
                                     salaryBaseYear: dto.SalaryBaseYear,

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using ClosedXML.Excel;
 using Newtonsoft.Json;
 using WindowsFormsApp1.Models;
 
@@ -15,15 +14,15 @@ namespace WindowsFormsApp1
 
         private static readonly Dictionary<string, string> ExcelHeaderDictionary = new Dictionary<string, string>()
         {
-            { "EmplName", "직원 이름" },
-            { "DisplayUidnum7", "주민등록번호 (앞 7자리)" },
-            { "EmplNum", "직원 번호" },
-            { "SalaryBname", "은행 이름" },
-            { "SalaryAcctnum", "계좌 번호" },
-            { "SalaryAmt", "급여 금액" },
-            { "SalaryBaseYear", "기준 연도" },
-            { "EmploymentDate", "고용 날짜" },
-            { "DisplayIsSafe", "안전 여부 (O/X)" }
+            { nameof(EmployeeExcelDto.EmplName), "직원 이름" },
+            { nameof(EmployeeExcelDto.GetDisplayUidnum7), "주민등록번호 (앞 7자리)" },
+            { nameof(EmployeeExcelDto.EmplNum), "직원 번호" },
+            { nameof(EmployeeExcelDto.SalaryBname), "은행 이름" },
+            { nameof(EmployeeExcelDto.SalaryAcctnum), "계좌 번호 (- 포함)" },
+            { nameof(EmployeeExcelDto.SalaryAmt), "급여 금액 (원)" },
+            { nameof(EmployeeExcelDto.SalaryBaseYear), "기준 연도" },
+            { nameof(EmployeeExcelDto.EmploymentDate), "고용 날짜 (YYYY-MM-DD)" },
+            { nameof(EmployeeExcelDto.GetDisplayIsSafe), "안전 여부 (O/X)" }
         };
 
         public Form1()
@@ -94,14 +93,14 @@ namespace WindowsFormsApp1
                         List<EmployeeExcelDto> excelDtos = employees.Select(emp => new EmployeeExcelDto
                         {
                             EmplName = emp.EmplName,
-                            DisplayUidnum7 = emp.GetDisplayUidnum7,
+                            GetDisplayUidnum7 = emp.GetDisplayUidnum7,
                             EmplNum = emp.EmplNum,
                             SalaryBname = emp.SalaryBname,
                             SalaryAcctnum = emp.SalaryAcctnum,
                             SalaryAmt = emp.SalaryAmt,
                             SalaryBaseYear = emp.SalaryBaseYear,
                             EmploymentDate = emp.EmploymentDate,
-                            DisplayIsSafe = emp.GetDisplayIsSafe
+                            GetDisplayIsSafe = emp.GetDisplayIsSafe
                         }).ToList();
 
                         string jsonData = JsonConvert.SerializeObject(excelDtos);
@@ -150,20 +149,10 @@ namespace WindowsFormsApp1
                         JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
                         List<EmployeeExcelDto> newEmployeeDtos = JsonConvert.DeserializeObject<List<EmployeeExcelDto>>(jsonData, settings);
 
-                        if (newEmployeeDtos == null || !newEmployeeDtos.Any())
+                        if (newEmployeeDtos == null || !newEmployeeDtos.Any() || newEmployeeDtos.Any(dto => !dto.IsValid()))
                         {
-                            throw new FormatException();
+                            throw new JsonSerializationException();
                         }
-
-                        HashSet<(string EmplName, string Uidnum7)> existingEmployeeIds = employees
-                            .Select(emp => (emp.EmplName, emp.Uidnum7))
-                            .ToHashSet();
-
-                        HashSet<(string EmplName, string Uidnum7)> newEmployeeIds = newEmployeeDtos
-                            .Select(dto => (dto.EmplName, dto.Uidnum7))
-                            .ToHashSet();
-
-                        employees.RemoveAll(emp => !newEmployeeIds.Contains((emp.EmplName, emp.Uidnum7)));
 
                         foreach (EmployeeExcelDto dto in newEmployeeDtos)
                         {

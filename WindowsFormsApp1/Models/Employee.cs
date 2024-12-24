@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -83,31 +84,50 @@ namespace WindowsFormsApp1.Models
 
     internal class EmployeeExcelDto
     {
+        [Required]
         public string EmplName { get; set; }
 
-        public string DisplayUidnum7 { get; set; }
+        [Required]
+        [MinLength(7)]
+        public string GetDisplayUidnum7 { get; set; }
 
         [JsonIgnore]
-        public string Uidnum7 => DisplayUidnum7.Replace("-", "").Substring(0, 7);
+        public string Uidnum7 => GetDisplayUidnum7.Trim().Replace("-", "").Substring(0, 7);
 
+        [Required]
         public string EmplNum { get; set; }
 
         [JsonIgnore]
         public int SalaryBcode => Employee.bCodeToName.FirstOrDefault(x => x.Value == SalaryBname.Trim()).Key;
 
+        [Required]
         public string SalaryBname { get; set; }
 
+        [Required]
         public string SalaryAcctnum { get; set; }
 
+        [Required]
+        [Range(1, int.MaxValue)]
         public int SalaryAmt { get; set; }
 
+        [Required]
+        [Range(1900, 2100)]
         public int SalaryBaseYear { get; set; }
 
+        [Required]
+        [DataType(DataType.Date)]
         public string EmploymentDate { get; set; }
 
-        public string DisplayIsSafe { get; set; }
+        [Required]
+        [RegularExpression(@"[OX]")]
+        public string GetDisplayIsSafe { get; set; }
 
         [JsonIgnore]
-        public int IsSafe => DisplayIsSafe == "O" ? 1 : 0;
+        public int IsSafe => GetDisplayIsSafe == "O" ? 1 : 0;
+
+        public bool IsValid()
+        {
+            return Validator.TryValidateObject(this, new ValidationContext(this), new List<ValidationResult>(), true);
+        }
     }
 }

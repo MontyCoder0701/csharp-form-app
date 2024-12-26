@@ -84,37 +84,39 @@ namespace WindowsFormsApp1
                 saveFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
                 saveFileDialog.FileName = $"갖추_직원정보_{DateTime.Now:yyyy-MM-dd}";
 
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                if (saveFileDialog.ShowDialog() != DialogResult.OK)
                 {
-                    try
+                    return;
+                }
+
+                try
+                {
+                    string filePath = saveFileDialog.FileName;
+
+                    List<EmployeeExcelDto> excelDtos = employees.Select(emp => new EmployeeExcelDto
                     {
-                        string filePath = saveFileDialog.FileName;
+                        EmplName = emp.EmplName,
+                        GetDisplayUidnum7 = emp.GetDisplayUidnum7,
+                        EmplNum = emp.EmplNum,
+                        SalaryBname = emp.SalaryBname,
+                        SalaryAcctnum = emp.SalaryAcctnum,
+                        SalaryAmt = emp.SalaryAmt,
+                        SalaryBaseYear = emp.SalaryBaseYear,
+                        EmploymentDate = emp.EmploymentDate,
+                        GetDisplayIsSafe = emp.GetDisplayIsSafe
+                    }).ToList();
 
-                        List<EmployeeExcelDto> excelDtos = employees.Select(emp => new EmployeeExcelDto
-                        {
-                            EmplName = emp.EmplName,
-                            GetDisplayUidnum7 = emp.GetDisplayUidnum7,
-                            EmplNum = emp.EmplNum,
-                            SalaryBname = emp.SalaryBname,
-                            SalaryAcctnum = emp.SalaryAcctnum,
-                            SalaryAmt = emp.SalaryAmt,
-                            SalaryBaseYear = emp.SalaryBaseYear,
-                            EmploymentDate = emp.EmploymentDate,
-                            GetDisplayIsSafe = emp.GetDisplayIsSafe
-                        }).ToList();
+                    string jsonData = JsonConvert.SerializeObject(excelDtos);
 
-                        string jsonData = JsonConvert.SerializeObject(excelDtos);
+                    jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Key, kv.Value));
 
-                        jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Key, kv.Value));
+                    ExcelManager.ExportJsonToExcel(filePath, jsonData);
 
-                        ExcelManager.ExportJsonToExcel(filePath, jsonData);
-
-                        MessageBox.Show("파일이 저장되었습니다.");
-                    }
-                    catch (Exception err)
-                    {
-                        MessageBox.Show($"엑셀 저장 중 문제가 발생했습니다. {err.Message}");
-                    }
+                    MessageBox.Show("파일이 저장되었습니다.");
+                }
+                catch (Exception err)
+                {
+                    MessageBox.Show($"엑셀 저장 중 문제가 발생했습니다. {err.Message}");
                 }
             }
         }
@@ -137,72 +139,80 @@ namespace WindowsFormsApp1
             {
                 openFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
 
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                if (openFileDialog.ShowDialog() != DialogResult.OK)
                 {
-                    try
+                    return;
+                }
+
+                try
+                {
+                    string filePath = openFileDialog.FileName;
+                    string jsonData = ExcelManager.ImportExcelToJson(filePath);
+
+                    jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Value, kv.Key));
+
+                    JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
+                    List<EmployeeExcelDto> newEmployeeDtos = JsonConvert.DeserializeObject<List<EmployeeExcelDto>>(jsonData, settings);
+
+                    if (newEmployeeDtos == null || !newEmployeeDtos.Any())
                     {
-                        string filePath = openFileDialog.FileName;
-                        string jsonData = ExcelManager.ImportExcelToJson(filePath);
+                        throw new JsonSerializationException();
+                    }
 
-                        jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Value, kv.Key));
+                    if (newEmployeeDtos.Any(dto => !dto.IsValid()))
+                    {
+                        MessageBox.Show("입력된 데이터의 형식이 잘못되었습니다. 각 값의 입력형식이나 빈 칸을 확인해주세요.");
+                        return;
+                    }
 
-                        JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
-                        List<EmployeeExcelDto> newEmployeeDtos = JsonConvert.DeserializeObject<List<EmployeeExcelDto>>(jsonData, settings);
+                    foreach (EmployeeExcelDto dto in newEmployeeDtos)
+                    {
+                        Employee existingEmployee = employees.FirstOrDefault(emp =>
+                            emp.EmplName == dto.EmplName && emp.Uidnum7 == dto.Uidnum7);
 
-                        if (newEmployeeDtos == null || !newEmployeeDtos.Any() || newEmployeeDtos.Any(dto => !dto.IsValid()))
+                        if (existingEmployee != null)
                         {
-                            throw new JsonSerializationException();
+                            existingEmployee.EmplNum = dto.EmplNum;
+                            existingEmployee.SalaryBcode = dto.SalaryBcode;
+                            existingEmployee.SalaryAcctnum = dto.SalaryAcctnum;
+                            existingEmployee.SalaryAmt = dto.SalaryAmt;
+                            existingEmployee.SalaryBaseYear = dto.SalaryBaseYear;
+                            existingEmployee.EmploymentDate = dto.EmploymentDate;
+                            existingEmployee.IsSafe = dto.IsSafe;
                         }
-
-                        foreach (EmployeeExcelDto dto in newEmployeeDtos)
+                        else
                         {
-                            Employee existingEmployee = employees.FirstOrDefault(emp =>
-                                emp.EmplName == dto.EmplName && emp.Uidnum7 == dto.Uidnum7);
+                            Employee newEmployee = new Employee(
+                                emplSeq: employees.Any() ? employees.Max(emp => emp.EmplSeq) + 1 : 1,
+                                cid: "GOTCHOO_1",
+                                emplName: dto.EmplName,
+                                uidnum7: dto.Uidnum7,
+                                emplNum: dto.EmplNum,
+                                salaryBcode: dto.SalaryBcode,
+                                salaryAcctnum: dto.SalaryAcctnum,
+                                salaryAmt: dto.SalaryAmt,
+                                salaryBaseYear: dto.SalaryBaseYear,
+                                employmentDate: dto.EmploymentDate,
+                                isSafe: dto.IsSafe,
+                                registdate: DateTime.Now.ToString("yyyy-MM-dd"),
+                                registdateformat: "yyyy-MM-dd"
+                            );
 
-                            if (existingEmployee != null)
-                            {
-                                existingEmployee.EmplNum = dto.EmplNum;
-                                existingEmployee.SalaryBcode = dto.SalaryBcode;
-                                existingEmployee.SalaryAcctnum = dto.SalaryAcctnum;
-                                existingEmployee.SalaryAmt = dto.SalaryAmt;
-                                existingEmployee.SalaryBaseYear = dto.SalaryBaseYear;
-                                existingEmployee.EmploymentDate = dto.EmploymentDate;
-                                existingEmployee.IsSafe = dto.IsSafe;
-                            }
-                            else
-                            {
-                                Employee newEmployee = new Employee(
-                                    emplSeq: employees.Any() ? employees.Max(emp => emp.EmplSeq) + 1 : 1,
-                                    cid: "GOTCHOO_1",
-                                    emplName: dto.EmplName,
-                                    uidnum7: dto.Uidnum7,
-                                    emplNum: dto.EmplNum,
-                                    salaryBcode: dto.SalaryBcode,
-                                    salaryAcctnum: dto.SalaryAcctnum,
-                                    salaryAmt: dto.SalaryAmt,
-                                    salaryBaseYear: dto.SalaryBaseYear,
-                                    employmentDate: dto.EmploymentDate,
-                                    isSafe: dto.IsSafe,
-                                    registdate: DateTime.Now.ToString("yyyy-MM-dd"),
-                                    registdateformat: "yyyy-MM-dd"
-                                );
-
-                                employees.Add(newEmployee);
-                            }
+                            employees.Add(newEmployee);
                         }
+                    }
 
-                        employeesBindingSource.ResetBindings(false);
+                    employeesBindingSource.ResetBindings(false);
 
-                        MessageBox.Show("새로운 데이터가 업로드되었습니다.");
-                    }
-                    catch (JsonSerializationException)
-                    {
-                        MessageBox.Show("입력된 데이터의 형식이 잘못되었습니다. 제공된 기존 엑셀 형식에 맞게 수정해주세요.");
-                    }
-                    catch (Exception err)
-                    {
-                        MessageBox.Show($"엑셀 업로드 중 문제가 발생했습니다. {err.Message}");
-                    }
+                    MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                }
+                catch (JsonSerializationException)
+                {
+                    MessageBox.Show("제공된 기존 엑셀 틀이 잘못 바뀌었습니다. 다운받은 엑셀의 형태를 유지하여 다시 시도하세요.");
+                }
+                catch (Exception err)
+                {
+                    MessageBox.Show($"엑셀 업로드 중 문제가 발생했습니다. {err.Message}");
                 }
             }
         }

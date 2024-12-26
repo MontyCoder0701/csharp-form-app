@@ -123,7 +123,7 @@ namespace WindowsFormsApp1.Models
         public string GetDisplayIsSafe { get; set; }
 
         [JsonIgnore]
-        public int IsSafe => GetDisplayIsSafe == "O" ? 1 : 0;
+        public int IsSafe => GetDisplayIsSafe.Trim() == "O" ? 1 : 0;
 
         public bool IsValid()
         {

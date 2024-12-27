@@ -93,7 +93,7 @@ namespace WindowsFormsApp1
                 {
                     string filePath = saveFileDialog.FileName;
 
-                    List<EmployeeExcelDto> excelDtos = employees.Select(emp => new EmployeeExcelDto
+                    List<EmployeeExcelDto> excelDtos = employees.ConvertAll(emp => new EmployeeExcelDto
                     {
                         EmplName = emp.EmplName,
                         GetDisplayUidnum7 = emp.GetDisplayUidnum7,
@@ -104,7 +104,7 @@ namespace WindowsFormsApp1
                         SalaryBaseYear = emp.SalaryBaseYear,
                         EmploymentDate = emp.EmploymentDate,
                         GetDisplayIsSafe = emp.GetDisplayIsSafe
-                    }).ToList();
+                    });
 
                     string jsonData = JsonConvert.SerializeObject(excelDtos);
 
@@ -159,9 +159,11 @@ namespace WindowsFormsApp1
                         throw new JsonSerializationException();
                     }
 
-                    if (newEmployeeDtos.Any(dto => !dto.IsValid()))
+                    string validationError = newEmployeeDtos.Select(dto => dto.Validate()).FirstOrDefault(error => error != null);
+
+                    if (validationError != null)
                     {
-                        MessageBox.Show("입력된 데이터의 형식이 잘못되었습니다. 각 값의 입력형식이나 빈 칸을 확인해주세요.");
+                        MessageBox.Show(validationError);
                         return;
                     }
 

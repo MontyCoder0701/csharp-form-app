@@ -84,50 +84,54 @@ namespace WindowsFormsApp1.Models
 
     internal class EmployeeExcelDto
     {
-        [Required]
+        [Required(ErrorMessage = "직원 이름을 입력해야 합니다.")]
         public string EmplName { get; set; }
 
-        [Required]
-        [MinLength(7)]
+        [Required(ErrorMessage = "주민등록번호 (앞 7자리)를 입력해야 합니다.")]
+        [MinLength(7, ErrorMessage = "주민등록번호는 최소 7자리를 입력해야 합니다.")]
         public string GetDisplayUidnum7 { get; set; }
 
         [JsonIgnore]
         public string Uidnum7 => GetDisplayUidnum7.Trim().Replace("-", "").Substring(0, 7);
 
-        [Required]
+        [Required(ErrorMessage = "직원 번호를 입력해야 합니다.")]
         public string EmplNum { get; set; }
 
         [JsonIgnore]
         public int SalaryBcode => Employee.bCodeToName.FirstOrDefault(x => x.Value == SalaryBname.Trim()).Key;
 
-        [Required]
+        [Required(ErrorMessage = "은행 이름을 입력해야 합니다.")]
         public string SalaryBname { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "계좌 번호를 입력해야 합니다.")]
         public string SalaryAcctnum { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue)]
+        [Required(ErrorMessage = "급여 금액을 입력해야 합니다.")]
+        [Range(1, int.MaxValue, ErrorMessage = "급여 금액은 1원 이상이어야 합니다.")]
         public int SalaryAmt { get; set; }
 
-        [Required]
-        [Range(1900, 2100)]
+        [Required(ErrorMessage = "기준 연도를 입력해야 합니다.")]
+        [Range(1900, 2100, ErrorMessage = "기준 연도는 1900에서 2100 사이여야 합니다.")]
         public int SalaryBaseYear { get; set; }
 
-        [Required]
-        [DataType(DataType.Date)]
+        [Required(ErrorMessage = "고용 날짜를 입력해야 합니다.")]
+        [DataType(DataType.Date, ErrorMessage = "고용 날짜는 올바른 날짜 형식이어야 합니다.")]
         public string EmploymentDate { get; set; }
 
-        [Required]
-        [RegularExpression(@"[OX]")]
+        [Required(ErrorMessage = "안전 여부를 입력해야 합니다.")]
+        [RegularExpression(@"[OX]", ErrorMessage = "안전 여부는 'O' 또는 'X'여야 합니다.")]
         public string GetDisplayIsSafe { get; set; }
 
         [JsonIgnore]
         public int IsSafe => GetDisplayIsSafe.Trim() == "O" ? 1 : 0;
 
-        public bool IsValid()
+        public string Validate()
         {
-            return Validator.TryValidateObject(this, new ValidationContext(this), new List<ValidationResult>(), true);
+            var results = new List<ValidationResult>();
+            var context = new ValidationContext(this);
+            bool isValid = Validator.TryValidateObject(this, context, results, true);
+
+            return isValid ? null : results.First().ErrorMessage;
         }
     }
 }

@@ -82,7 +82,7 @@ namespace WindowsFormsApp1
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
                 saveFileDialog.Filter = "Excel 파일 (*.xlsx)|*.xlsx";
-                saveFileDialog.FileName = $"갖추_직원정보_{DateTime.Now:yyyy-MM-dd}";
+                saveFileDialog.FileName = $"직원정보_{DateTime.Now:yyyy-MM-dd}";
 
                 if (saveFileDialog.ShowDialog() != DialogResult.OK)
                 {

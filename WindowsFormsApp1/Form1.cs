@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
@@ -237,11 +239,28 @@ namespace WindowsFormsApp1
                     using (PdfReader reader = new PdfReader(filePath))
                     using (PdfDocument pdfDoc = new PdfDocument(reader))
                     {
+                        StringBuilder allText = new StringBuilder();
+
                         for (int page = 1; page <= pdfDoc.GetNumberOfPages(); page++)
                         {
                             string pageText = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(page));
-                            Console.WriteLine($"Page {page}:\n{pageText}\n");
+                            allText.Append(pageText);
                         }
+
+                        string combinedText = allText.ToString();
+                        Console.WriteLine(combinedText);
+
+                        string baseYear = Regex.Match(combinedText, @"사업자등록번호[\s\S]*?(\d{4})[.-]\d{2}[.-]\d{2}(?=[\s\S]*?근무기간)").Groups[1].Value;
+                        string name = Regex.Match(combinedText, @"성명\s([\S]+)").Groups[1].Value.Split('⑦')[0];
+                        string idNumber = Regex.Match(combinedText, @"주민(?:등록번호\(외국인등록번호\)|\(외국인\)등록번호)\s(.{14})").Groups[1].Value;
+                        int deductibleTax = Regex.Match(combinedText, @"차감징수세액.*?(-?[\d,]+(?:\s+-?[\d,]+)*)")
+                                            .Groups[1]
+                                            .Value
+                                            .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                            .Where(value => int.TryParse(value.Replace(",", ""), out _))
+                                            .Sum(value => int.Parse(value.Replace(",", "")));
+
+                        MessageBox.Show($"기준년도: {baseYear} / 이름: {name} / 주민등록번호: {idNumber} / 차감징수세액: {deductibleTax}");
                     }
 
                     //string tessDataPath = @"./tessdata";

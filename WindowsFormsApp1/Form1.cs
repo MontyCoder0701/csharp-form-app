@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
 using Newtonsoft.Json;
-using Tesseract;
 using WindowsFormsApp1.Models;
 
 namespace WindowsFormsApp1
@@ -233,15 +233,26 @@ namespace WindowsFormsApp1
                 try
                 {
                     string filePath = openFileDialog.FileName;
-                    string tessDataPath = @"./tessdata";
 
-                    using (var image = new Bitmap(filePath))
-                    using (var engine = new TesseractEngine(tessDataPath, "kor", EngineMode.Default))
-                    using (var page = engine.Process(image, PageSegMode.Auto))
+                    using (PdfReader reader = new PdfReader(filePath))
+                    using (PdfDocument pdfDoc = new PdfDocument(reader))
                     {
-                        string extractedText = page.GetText();
-                        Console.WriteLine(extractedText);
+                        for (int page = 1; page <= pdfDoc.GetNumberOfPages(); page++)
+                        {
+                            string pageText = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(page));
+                            Console.WriteLine($"Page {page}:\n{pageText}\n");
+                        }
                     }
+
+                    //string tessDataPath = @"./tessdata";
+
+                    //using (var image = new Bitmap(filePath))
+                    //using (var engine = new TesseractEngine(tessDataPath, "kor", EngineMode.Default))
+                    //using (var page = engine.Process(image, PageSegMode.Auto))
+                    //{
+                    //    string extractedText = page.GetText();
+                    //    Console.WriteLine(extractedText);
+                    //}
 
                     MessageBox.Show("텍스트 추출이 완료되었습니다.");
                 }

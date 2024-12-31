@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using Tesseract;
 using WindowsFormsApp1.Models;
 
 namespace WindowsFormsApp1
@@ -215,6 +217,37 @@ namespace WindowsFormsApp1
                 catch (Exception err)
                 {
                     MessageBox.Show($"엑셀 업로드 중 문제가 발생했습니다. {err.Message}");
+                }
+            }
+        }
+
+        private void HandleReadSalaryPdfButtonClick(object sender, EventArgs e)
+        {
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                if (openFileDialog.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                try
+                {
+                    string filePath = openFileDialog.FileName;
+                    string tessDataPath = @"./tessdata";
+
+                    using (var image = new Bitmap(filePath))
+                    using (var engine = new TesseractEngine(tessDataPath, "kor", EngineMode.Default))
+                    using (var page = engine.Process(image, PageSegMode.Auto))
+                    {
+                        string extractedText = page.GetText();
+                        Console.WriteLine(extractedText);
+                    }
+
+                    MessageBox.Show("텍스트 추출이 완료되었습니다.");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"PDF 처리 중 문제가 발생했습니다. {ex.Message}");
                 }
             }
         }

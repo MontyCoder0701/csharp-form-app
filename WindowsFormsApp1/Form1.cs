@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using Tesseract;
@@ -237,9 +238,9 @@ namespace WindowsFormsApp1
 
                     using (var image = new Bitmap(filePath))
                     using (var engine = new TesseractEngine(tessDataPath, "kor", EngineMode.Default))
-                    using (var page = engine.Process(image, PageSegMode.Auto))
+                    using (var page = engine.Process(image, PageSegMode.SparseText))
                     {
-                        string extractedText = page.GetText();
+                        string extractedText = Regex.Replace(page.GetText(), @"\s+", " ").Trim();
                         Console.WriteLine(extractedText);
                     }
 

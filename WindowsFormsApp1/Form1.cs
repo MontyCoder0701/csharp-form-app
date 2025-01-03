@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using Tesseract;
 using WindowsFormsApp1.Models;
 
 namespace WindowsFormsApp1
@@ -236,13 +233,22 @@ namespace WindowsFormsApp1
                     string filePath = openFileDialog.FileName;
                     string tessDataPath = @"./tessdata";
 
-                    using (var image = new Bitmap(filePath))
-                    using (var engine = new TesseractEngine(tessDataPath, "kor", EngineMode.Default))
-                    using (var page = engine.Process(image, PageSegMode.SparseText))
+                    var template = new
                     {
-                        string extractedText = Regex.Replace(page.GetText(), @"\s+", " ").Trim();
-                        Console.WriteLine(extractedText);
-                    }
+                        Version = 2024,
+                        Width = 700,
+                        Height = 995,
+                        Areas = new[]
+                        {
+                            new { Page= 1, Key = "Name", X = 150, Y = 212, Width = 215, Height = 20 },
+                            new { Page= 1, Key = "Uid7", X = 544, Y = 212, Width = 141, Height = 20 },
+                            new { Page= 1, Key = "WorkPeriod", X = 244, Y = 315, Width = 90, Height = 20 },
+                            new { Page= 1, Key = "TotalIncome", X = 244, Y = 550, Width = 90, Height = 20 },
+                            new { Page= 1, Key = "TotalTaxFreeIncome", X = 245, Y = 705, Width = 90, Height = 20 },
+                            new { Page= 1, Key = "PrePaidTax", X = 371, Y = 848, Width = 325, Height = 20 },
+                            new { Page= 1, Key = "DeductibleTax", X = 371, Y = 890, Width = 325, Height = 20 },
+                        },
+                    };
 
                     MessageBox.Show("텍스트 추출이 완료되었습니다.");
                 }

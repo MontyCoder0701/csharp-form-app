@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using OpenCvSharp;
 using WindowsFormsApp1.Models;
 
 namespace WindowsFormsApp1
@@ -249,6 +250,33 @@ namespace WindowsFormsApp1
                             new { Page= 1, Key = "DeductibleTax", X = 371, Y = 890, Width = 325, Height = 20 },
                         },
                     };
+
+                    Mat image = Cv2.ImRead(filePath);
+                    Mat gray = new Mat();
+                    Cv2.CvtColor(image, gray, ColorConversionCodes.BGR2GRAY);
+
+                    Mat edges = new Mat();
+                    Cv2.Canny(gray, edges, 50, 150);
+
+                    Cv2.FindContours(edges, out Point[][] contours, out HierarchyIndex[] hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+
+                    Rect largestRect = new Rect();
+                    double maxArea = 0;
+
+                    foreach (var contour in contours)
+                    {
+                        Rect rect = Cv2.BoundingRect(contour);
+                        double area = rect.Width * rect.Height;
+                        if (area > maxArea)
+                        {
+                            maxArea = area;
+                            largestRect = rect;
+                        }
+                    }
+
+                    Mat cropped = new Mat(image, largestRect);
+                    Mat resizedImage = new Mat();
+                    Cv2.Resize(cropped, resizedImage, new Size(template.Width, template.Height));
 
                     MessageBox.Show("텍스트 추출이 완료되었습니다.");
                 }

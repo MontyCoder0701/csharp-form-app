@@ -4,7 +4,9 @@ using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using OpenCvSharp;
+using Tesseract;
 using WindowsFormsApp1.Models;
+using Rect = OpenCvSharp.Rect;
 
 namespace WindowsFormsApp1
 {
@@ -277,6 +279,27 @@ namespace WindowsFormsApp1
                     Mat cropped = new Mat(image, largestRect);
                     Mat resizedImage = new Mat();
                     Cv2.Resize(cropped, resizedImage, new Size(template.Width, template.Height));
+
+                    var results = new List<string>();
+
+                    foreach (var area in template.Areas)
+                    {
+                        var roi = new Rect(area.X, area.Y, area.Width, area.Height);
+                        Mat region = new Mat(resizedImage, roi);
+
+                        using (var engine = new TesseractEngine(tessDataPath, "kor", EngineMode.Default))
+                        using (var bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(region))
+                        using (var page = engine.Process(bitmap, PageSegMode.SparseText))
+                        {
+                            string text = page.GetText().Trim();
+                            results.Add($"{area.Key}: {text}");
+                        }
+                    }
+
+                    foreach (var result in results)
+                    {
+                        Console.WriteLine(result);
+                    }
 
                     MessageBox.Show("텍스트 추출이 완료되었습니다.");
                 }

@@ -218,5 +218,31 @@ namespace WindowsFormsApp1
                 }
             }
         }
+
+        private void HandlePdfImportClick(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                // TODO: 여러 파일 선택 지원
+                openFileDialog.Filter = "PDF 파일 (*.pdf)|*.pdf";
+
+                if (openFileDialog.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                try
+                {
+                    // TODO: PDF 데이터 읽어오기
+                    string filePath = openFileDialog.FileName;
+                    MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                }
+                catch (Exception err)
+                {
+                    MessageBox.Show($"PDF 업로드 중 문제가 발생했습니다. {err.Message}");
+                }
+            }
+
+        }
     }
 }

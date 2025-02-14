@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using UglyToad.PdfPig;
 using WindowsFormsApp1.Models;
 
 namespace WindowsFormsApp1
@@ -235,6 +236,13 @@ namespace WindowsFormsApp1
                 {
                     // TODO: PDF 데이터 읽어오기
                     string filePath = openFileDialog.FileName;
+                    List<List<string>> tableData = ImportPdfToTable(filePath, 2);
+
+                    foreach (var row in tableData)
+                    {
+                        Console.WriteLine(string.Join("|", row));
+                    }
+
                     MessageBox.Show("새로운 데이터가 업로드되었습니다.");
                 }
                 catch (Exception err)
@@ -242,7 +250,75 @@ namespace WindowsFormsApp1
                     MessageBox.Show($"PDF 업로드 중 문제가 발생했습니다. {err.Message}");
                 }
             }
+        }
 
+        // TODO: 별도 클래스에 분리
+        List<List<string>> ImportPdfToTable(string pdfPath, int lastPage = 1, int rowThreshold = 5, int cellThreshold = 15)
+        {
+            List<List<(string text, double x, double y)>> tableRows = new List<List<(string, double, double)>>();
+
+            using (PdfDocument document = PdfDocument.Open(pdfPath))
+            {
+                for (int pageNum = 1; pageNum <= lastPage; pageNum++)
+                {
+                    var page = document.GetPage(pageNum);
+                    var words = page.GetWords()
+                        .Select(word => (word.Text, word.BoundingBox.Left, word.BoundingBox.Bottom))
+                        .ToList();
+
+                    words.Sort((a, b) => b.Bottom.CompareTo(a.Bottom));
+
+                    List<(string, double, double)> currentRow = new List<(string, double, double)>();
+                    double lastY = double.MaxValue;
+
+                    foreach (var (text, x, y) in words)
+                    {
+                        if (Math.Abs(y - lastY) > rowThreshold)
+                        {
+                            if (currentRow.Count > 0)
+                            {
+                                tableRows.Add(new List<(string, double, double)>(currentRow));
+                            }
+                            currentRow.Clear();
+                        }
+                        currentRow.Add((text, x, y));
+                        lastY = y;
+                    }
+
+                    if (currentRow.Count > 0)
+                    {
+                        tableRows.Add(currentRow);
+                    }
+                }
+            }
+
+            List<List<string>> structuredTable = new List<List<string>>();
+            foreach (var row in tableRows)
+            {
+                row.Sort((a, b) => a.x.CompareTo(b.x));
+
+                List<string> mergedRow = new List<string>();
+                string currentCell = row[0].text;
+                double lastX = row[0].x;
+
+                for (int i = 1; i < row.Count; i++)
+                {
+                    if (Math.Abs(row[i].x - lastX) < cellThreshold)
+                    {
+                        currentCell += " " + row[i].text;
+                    }
+                    else
+                    {
+                        mergedRow.Add(currentCell);
+                        currentCell = row[i].text;
+                    }
+                    lastX = row[i].x;
+                }
+                mergedRow.Add(currentCell);
+                structuredTable.Add(mergedRow);
+            }
+
+            return structuredTable;
         }
     }
 }

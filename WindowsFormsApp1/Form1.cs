@@ -262,8 +262,8 @@ namespace WindowsFormsApp1
                     // TODO: Regex 지양
                     string datePattern = @"\b\d{4}[-.]\d{2}[-.]\d{2}|\b\d{4}[-.]\d{2}";
                     var baseYear = tableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑪") && cell.Contains("근무기간")))?
-                        .SkipWhile(cell => !(cell.Contains("⑪") && cell.Contains("근무기간")))
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))?
+                        .SkipWhile(cell => !cell.Contains("근무기간"))
                         .Skip(1)
                         .Select(cell => Regex.Match(cell, datePattern))
                         .FirstOrDefault(match => match.Success)?
@@ -277,23 +277,23 @@ namespace WindowsFormsApp1
                        .FirstOrDefault();
 
                     var untaxedTotalSum = tableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("20") && cell.Contains("비과세소득")))?
-                        .SkipWhile(cell => !(cell.Contains("20") && cell.Contains("비과세소득")))
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("비과세소득")))?
+                        .SkipWhile(cell => !cell.Contains("비과세소득"))
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
                     var previousTaxPaid = tableData
-                       .FirstOrDefault(row => row.Any(cell => cell.Contains("75") && cell.Contains("주(현)근무지")))?
-                       .SkipWhile(cell => !(cell.Contains("75") && cell.Contains("주(현)근무지")))
+                       .FirstOrDefault(row => row.Any(cell => cell.Contains("주(현)근무지")))?
+                       .SkipWhile(cell => !cell.Contains("주(현)근무지"))
                        .Skip(1)
                        .Take(3)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .Sum();
 
                     var excludedTax = tableData
-                       .FirstOrDefault(row => row.Any(cell => cell.Contains("차감징수세액")))?
-                       .SkipWhile(cell => !cell.Contains("차감징수세액"))
+                       .FirstOrDefault(row => row.Any(cell => cell.Contains("징수세액")))?
+                       .SkipWhile(cell => !cell.Contains("징수세액"))
                        .Skip(1)
                        .Take(3)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)

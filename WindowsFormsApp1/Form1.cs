@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using UglyToad.PdfPig;
@@ -234,13 +235,52 @@ namespace WindowsFormsApp1
 
                 try
                 {
-                    // TODO: PDF 데이터 읽어오기
+                    // TODO: 2024 영수증도 확인
                     string filePath = openFileDialog.FileName;
                     List<List<string>> tableData = ImportPdfToTable(filePath, 2);
 
-                    foreach (var row in tableData)
+                    // TODO: 2024 영수증도 확인
+                    var nameRow = tableData.FirstOrDefault(row => row.Any(cell => cell.Contains("⑥")) && row.Any(cell => cell.Contains("⑦")));
+                    if (nameRow != null)
                     {
-                        Console.WriteLine(string.Join("|", row));
+                        int startIndex = nameRow.FindIndex(cell => cell.Contains("⑥"));
+                        if (startIndex != -1 && startIndex + 2 < nameRow.Count)
+                        {
+                            Console.WriteLine($"name: {nameRow[startIndex + 2]}");
+                            Console.WriteLine($"uid: {nameRow[nameRow.Count - 1]}");
+                        }
+                    }
+
+                    var baseYearRow = tableData.FirstOrDefault(row => row.Any(cell => cell.Contains("⑪") || (cell.Contains("11") && cell.Contains("근무기간"))));
+                    if (baseYearRow != null)
+                    {
+                        int startIndex = baseYearRow.FindIndex(cell => cell.Contains("⑪") || (cell.Contains("11") && cell.Contains("근무기간")));
+                        if (startIndex != -1)
+                        {
+                            // TODO: Regex 더 단순화하는 방법 모색
+                            string datePattern = @"\b\d{4}[-.]\d{2}[-.]\d{2}|\b\d{4}[-.]\d{2}";
+                            foreach (var cell in baseYearRow.Skip(startIndex))
+                            {
+                                string normalizedCell = Regex.Replace(cell, @"\s+", "");
+                                Match match = Regex.Match(normalizedCell, datePattern);
+                                if (match.Success)
+                                {
+                                    Console.WriteLine($"baseYear: {match.Value}");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    var totalSumRow = tableData.FirstOrDefault(row => row.Any(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계"));
+                    if (totalSumRow != null)
+                    {
+                        int startIndex = totalSumRow.FindIndex(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계");
+                        if (startIndex != -1 && startIndex + 1 < totalSumRow.Count)
+                        {
+                            string normalizedCell = Regex.Replace(totalSumRow[startIndex + 1], @"\s+", "");
+                            Console.WriteLine($"totalSum: {normalizedCell}");
+                        }
                     }
 
                     MessageBox.Show("새로운 데이터가 업로드되었습니다.");

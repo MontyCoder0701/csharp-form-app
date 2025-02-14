@@ -255,13 +255,9 @@ namespace WindowsFormsApp1
                         .Skip(2)
                         .FirstOrDefault();
 
-                    Console.WriteLine($"name: {nameRow ?? ""}");
-
                     var uid = tableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
                         .Last();
-
-                    Console.WriteLine($"uid: {uid ?? ""}");
 
                     // TODO: Regex 지양
                     string datePattern = @"\b\d{4}[-.]\d{2}[-.]\d{2}|\b\d{4}[-.]\d{2}";
@@ -273,23 +269,19 @@ namespace WindowsFormsApp1
                         .FirstOrDefault(match => match.Success)?
                         .Value;
 
-                    Console.WriteLine($"baseYear: {baseYear ?? ""}");
-
                     var totalSum = tableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("16") && cell.Contains("계")))?
                        .SkipWhile(cell => !(cell.Contains("16") && cell.Contains("계")))
                        .Skip(1)
+                       .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .FirstOrDefault();
-
-                    Console.WriteLine($"totalSum: {totalSum ?? "0"}");
 
                     var untaxedTotalSum = tableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("20") && cell.Contains("비과세소득")))?
                         .SkipWhile(cell => !(cell.Contains("20") && cell.Contains("비과세소득")))
                         .Skip(1)
-                        .FirstOrDefault()?.Trim();
-
-                    Console.WriteLine($"untaxedTotalSum: {(decimal.TryParse(untaxedTotalSum, out decimal untaxedSum) ? untaxedSum : 0)}");
+                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                        .FirstOrDefault();
 
                     var previousTaxPaid = tableData
                        .FirstOrDefault(row => row.Any(cell => cell.Contains("75") && cell.Contains("주(현)근무지")))?
@@ -299,7 +291,21 @@ namespace WindowsFormsApp1
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .Sum();
 
+                    var excludedTax = tableData
+                       .FirstOrDefault(row => row.Any(cell => cell.Contains("차감징수세액")))?
+                       .SkipWhile(cell => !cell.Contains("차감징수세액"))
+                       .Skip(1)
+                       .Take(3)
+                       .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                       .Sum();
+
+                    Console.WriteLine($"name: {nameRow ?? ""}");
+                    Console.WriteLine($"uid: {uid ?? ""}");
+                    Console.WriteLine($"baseYear: {baseYear ?? ""}");
+                    Console.WriteLine($"totalSum: {totalSum}");
+                    Console.WriteLine($"untaxedTotalSum: {untaxedTotalSum}");
                     Console.WriteLine($"previousTaxPaid: {previousTaxPaid}");
+                    Console.WriteLine($"excludedTax: {excludedTax}");
 
                     MessageBox.Show("새로운 데이터가 업로드되었습니다.");
                 }

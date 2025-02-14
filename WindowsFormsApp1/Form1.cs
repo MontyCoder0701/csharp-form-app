@@ -237,31 +237,31 @@ namespace WindowsFormsApp1
                 {
                     // TODO: 2024 영수증도 확인
                     string filePath = openFileDialog.FileName;
-                    List<List<string>> tableData = ImportPdfToTable(filePath, 2);
+                    List<List<string>> firstTableData = ImportPdfToTable(filePath, 1);
 
-                    tableData = tableData
+                    firstTableData = firstTableData
                        .Select(row => row.Select(cell => Regex.Replace(cell, @"\s+", "")).ToList())
                        .ToList();
 
-                    foreach (var row in tableData)
+                    foreach (var row in firstTableData)
                     {
                         Console.WriteLine(string.Join("|", row));
                     }
 
                     // TODO: 2024 영수증도 확인
-                    var nameRow = tableData
+                    var nameRow = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
                         .SkipWhile(cell => !cell.Contains("⑥"))
                         .Skip(2)
                         .FirstOrDefault();
 
-                    var uid = tableData
+                    var uid = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
                         .Last();
 
                     // TODO: Regex 지양
                     string datePattern = @"\b\d{4}[-.]\d{2}[-.]\d{2}|\b\d{4}[-.]\d{2}";
-                    var baseYear = tableData
+                    var baseYear = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))?
                         .SkipWhile(cell => !cell.Contains("근무기간"))
                         .Skip(1)
@@ -269,21 +269,21 @@ namespace WindowsFormsApp1
                         .FirstOrDefault(match => match.Success)?
                         .Value;
 
-                    var totalSum = tableData
+                    var totalSum = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("16") && cell.Contains("계")))?
                        .SkipWhile(cell => !(cell.Contains("16") && cell.Contains("계")))
                        .Skip(1)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .FirstOrDefault();
 
-                    var untaxedTotalSum = tableData
+                    var untaxedTotalSum = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("비과세소득")))?
                         .SkipWhile(cell => !cell.Contains("비과세소득"))
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
-                    var previousTaxPaid = tableData
+                    var previousTaxPaid = firstTableData
                        .FirstOrDefault(row => row.Any(cell => cell.Contains("주(현)근무지")))?
                        .SkipWhile(cell => !cell.Contains("주(현)근무지"))
                        .Skip(1)
@@ -291,7 +291,7 @@ namespace WindowsFormsApp1
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .Sum();
 
-                    var excludedTax = tableData
+                    var excludedTax = firstTableData
                        .FirstOrDefault(row => row.Any(cell => cell.Contains("징수세액")))?
                        .SkipWhile(cell => !cell.Contains("징수세액"))
                        .Skip(1)
@@ -307,6 +307,63 @@ namespace WindowsFormsApp1
                     Console.WriteLine($"previousTaxPaid: {previousTaxPaid}");
                     Console.WriteLine($"excludedTax: {excludedTax}");
 
+
+                    List<List<string>> secondTableData = ImportPdfToTable(filePath, 2, 3);
+
+                    secondTableData = secondTableData
+                       .Select(row => row.Select(cell => Regex.Replace(cell, @"\s+", "")).ToList())
+                       .ToList();
+
+                    foreach (var row in secondTableData)
+                    {
+                        Console.WriteLine(string.Join("|", row));
+                    }
+
+                    var nationalPensionRowIndex = secondTableData
+                        .Select((row, index) => new { row, index })
+                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("국민연금보험료")))?
+                        .index ?? -1;
+
+                    var nationalPension = secondTableData[nationalPensionRowIndex - 1]
+                        .SkipWhile(cell => !cell.Contains("대상금액"))
+                        .Skip(1)
+                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                        .FirstOrDefault();
+
+                    var publicOfficialPensionIndex = secondTableData
+                        .Select((row, index) => new { row, index })
+                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("공무원연금")))?
+                        .index ?? -1;
+
+                    var publicOfficialPension = secondTableData[publicOfficialPensionIndex - 1]
+                        .SkipWhile(cell => !cell.Contains("대상금액"))
+                        .Skip(1)
+                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                        .FirstOrDefault();
+
+                    var soldierPension = secondTableData
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("군인연금")))?
+                        .SkipWhile(cell => !cell.Contains("군인연금"))
+                        .Skip(2)
+                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                        .FirstOrDefault();
+
+                    var privateSchoolPensionnRowIndex = secondTableData
+                       .Select((row, index) => new { row, index })
+                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("사립학교")))?
+                       .index ?? -1;
+
+                    var privateSchoolPension = secondTableData[privateSchoolPensionnRowIndex - 1]
+                        .SkipWhile(cell => !cell.Contains("대상금액"))
+                        .Skip(1)
+                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                        .FirstOrDefault();
+
+                    Console.WriteLine($"nationalPension: {nationalPension}");
+                    Console.WriteLine($"publicOfficialPension: {publicOfficialPension}");
+                    Console.WriteLine($"soldierPension: {soldierPension}");
+                    Console.WriteLine($"privateSchoolPension: {privateSchoolPension}");
+
                     MessageBox.Show("새로운 데이터가 업로드되었습니다.");
                 }
                 catch (Exception err)
@@ -317,46 +374,45 @@ namespace WindowsFormsApp1
         }
 
         // TODO: 별도 클래스에 분리
-        List<List<string>> ImportPdfToTable(string pdfPath, int lastPage = 1, int rowThreshold = 5, int cellThreshold = 15)
+        List<List<string>> ImportPdfToTable(string pdfPath, int pageNum = 1, int rowThreshold = 5, int cellThreshold = 30)
         {
             List<List<(string text, double x, double y)>> tableRows = new List<List<(string, double, double)>>();
 
             using (PdfDocument document = PdfDocument.Open(pdfPath))
             {
-                for (int pageNum = 1; pageNum <= lastPage; pageNum++)
+
+                var page = document.GetPage(pageNum);
+                var words = page.GetWords()
+                    .Select(word => (word.Text, word.BoundingBox.Left, word.BoundingBox.Bottom))
+                    .ToList();
+
+                words.Sort((a, b) => b.Bottom.CompareTo(a.Bottom));
+
+                List<(string, double, double)> currentRow = new List<(string, double, double)>();
+                double lastY = double.MaxValue;
+
+                foreach (var (text, x, y) in words)
                 {
-                    var page = document.GetPage(pageNum);
-                    var words = page.GetWords()
-                        .Select(word => (word.Text, word.BoundingBox.Left, word.BoundingBox.Bottom))
-                        .ToList();
-
-                    words.Sort((a, b) => b.Bottom.CompareTo(a.Bottom));
-
-                    List<(string, double, double)> currentRow = new List<(string, double, double)>();
-                    double lastY = double.MaxValue;
-
-                    foreach (var (text, x, y) in words)
+                    if (Math.Abs(y - lastY) > rowThreshold)
                     {
-                        if (Math.Abs(y - lastY) > rowThreshold)
+                        if (currentRow.Count > 0)
                         {
-                            if (currentRow.Count > 0)
-                            {
-                                tableRows.Add(new List<(string, double, double)>(currentRow));
-                            }
-                            currentRow.Clear();
+                            tableRows.Add(new List<(string, double, double)>(currentRow));
                         }
-                        currentRow.Add((text, x, y));
-                        lastY = y;
+                        currentRow.Clear();
                     }
+                    currentRow.Add((text, x, y));
+                    lastY = y;
+                }
 
-                    if (currentRow.Count > 0)
-                    {
-                        tableRows.Add(currentRow);
-                    }
+                if (currentRow.Count > 0)
+                {
+                    tableRows.Add(currentRow);
                 }
             }
 
             List<List<string>> structuredTable = new List<List<string>>();
+
             foreach (var row in tableRows)
             {
                 row.Sort((a, b) => a.x.CompareTo(b.x));

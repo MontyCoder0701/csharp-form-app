@@ -235,7 +235,7 @@ namespace WindowsFormsApp1
 
                 try
                 {
-                    // TODO: 2024 영수증도 확인
+                    // TODO: 2024 영수증도 확인 (더존, 세무사랑, 홈택스)
                     string filePath = openFileDialog.FileName;
                     List<List<string>> firstTableData = ImportPdfToTable(filePath, 1);
 
@@ -248,7 +248,6 @@ namespace WindowsFormsApp1
                         Console.WriteLine(string.Join("|", row));
                     }
 
-                    // TODO: 2024 영수증도 확인
                     var nameRow = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
                         .SkipWhile(cell => !cell.Contains("⑥"))
@@ -335,16 +334,20 @@ namespace WindowsFormsApp1
                         .FirstOrDefault(x => x.row.Any(cell => cell.Contains("공무원연금")))?
                         .index ?? -1;
 
-                    var publicOfficialPension = secondTableData[publicOfficialPensionIndex - 1]
+                    var publicOfficialPension = secondTableData[publicOfficialPensionIndex]
                         .SkipWhile(cell => !cell.Contains("대상금액"))
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
-                    var soldierPension = secondTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("군인연금")))?
-                        .SkipWhile(cell => !cell.Contains("군인연금"))
-                        .Skip(2)
+                    var soldierPensionIndex = secondTableData
+                       .Select((row, index) => new { row, index })
+                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("군인연금")))?
+                       .index ?? -1;
+
+                    var soldierPension = secondTableData[soldierPensionIndex - 1]
+                        .SkipWhile(cell => !cell.Contains("대상금액"))
+                        .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
@@ -353,7 +356,18 @@ namespace WindowsFormsApp1
                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("사립학교")))?
                        .index ?? -1;
 
-                    var privateSchoolPension = secondTableData[privateSchoolPensionnRowIndex - 1]
+                    var privateSchoolPension = secondTableData[privateSchoolPensionnRowIndex]
+                        .SkipWhile(cell => !cell.Contains("대상금액"))
+                        .Skip(1)
+                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                        .FirstOrDefault();
+
+                    var postalPensionRowIndex = secondTableData
+                      .Select((row, index) => new { row, index })
+                      .FirstOrDefault(x => x.row.Any(cell => cell.Contains("별정우체국")))?
+                      .index ?? -1;
+
+                    var postalPension = secondTableData[postalPensionRowIndex - 1]
                         .SkipWhile(cell => !cell.Contains("대상금액"))
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
@@ -363,6 +377,7 @@ namespace WindowsFormsApp1
                     Console.WriteLine($"publicOfficialPension: {publicOfficialPension}");
                     Console.WriteLine($"soldierPension: {soldierPension}");
                     Console.WriteLine($"privateSchoolPension: {privateSchoolPension}");
+                    Console.WriteLine($"postalPension: {postalPension}");
 
                     MessageBox.Show("새로운 데이터가 업로드되었습니다.");
                 }

@@ -318,6 +318,7 @@ namespace WindowsFormsApp1
                         Console.WriteLine(string.Join("|", row));
                     }
 
+                    // TODO: 논리 간소화 & 모든 양식 적용 여부 확인
                     var nationalPensionRowIndex = secondTableData
                         .Select((row, index) => new { row, index })
                         .FirstOrDefault(x => x.row.Any(cell => cell.Contains("국민연금보험료")))?
@@ -373,11 +374,39 @@ namespace WindowsFormsApp1
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
+                    var healthInsuranceIndex = secondTableData
+                       .Select((row, index) => new { row, index })
+                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("건강보험료")))?
+                       .index ?? -1;
+
+                    var healthInsurance = secondTableData[healthInsuranceIndex]
+                        .SkipWhile(cell => !cell.Contains("대상금액"))
+                        .Skip(1)
+                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                        .FirstOrDefault();
+
+                    var employmentInsuranceIndex = secondTableData
+                      .Select((row, index) => new { row, index })
+                      .FirstOrDefault(x => x.row.Any(cell => cell.Contains("고용보험료")))?
+                      .index ?? -1;
+
+                    var employmentInsurance = secondTableData[employmentInsuranceIndex - 1]
+                        .SkipWhile(cell => !cell.Contains("대상금액"))
+                        .Skip(1)
+                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+                        .FirstOrDefault();
+
                     Console.WriteLine($"nationalPension: {nationalPension}");
                     Console.WriteLine($"publicOfficialPension: {publicOfficialPension}");
                     Console.WriteLine($"soldierPension: {soldierPension}");
                     Console.WriteLine($"privateSchoolPension: {privateSchoolPension}");
                     Console.WriteLine($"postalPension: {postalPension}");
+                    Console.WriteLine($"healthInsurance: {healthInsurance}");
+                    Console.WriteLine($"employmentInsurance: {employmentInsurance}");
+
+                    // TODO: 급여액 = (근무처별소득명세 계 + 비과세소득 계) - 기납부세액 - [(국민연금보험료 or 공적연금보험료공제) + 건강보험료 + 고용보험료] - (전전년도 차감징수세액)
+                    var salary = totalSum + untaxedTotalSum - previousTaxPaid - (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance) - excludedTax;
+                    Console.WriteLine($"salary: {salary}");
 
                     MessageBox.Show("새로운 데이터가 업로드되었습니다.");
                 }

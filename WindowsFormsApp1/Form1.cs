@@ -248,59 +248,59 @@ namespace WindowsFormsApp1
                         Console.WriteLine(string.Join("|", row));
                     }
 
-                    var nameRow = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
+                    string nameRow = firstTableData
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))
                         .SkipWhile(cell => !cell.Contains("⑥"))
                         .Skip(2)
                         .FirstOrDefault();
 
-                    var uid = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
+                    string uid = firstTableData
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))
                         .Last();
 
                     // TODO: Regex 지양
                     string datePattern = @"\b\d{4}[-.]\d{2}[-.]\d{2}|\b\d{4}[-.]\d{2}";
-                    var baseYear = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))?
+                    string baseYear = firstTableData
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))
                         .SkipWhile(cell => !cell.Contains("근무기간"))
                         .Skip(1)
                         .Select(cell => Regex.Match(cell, datePattern))
                         .FirstOrDefault(match => match.Success)?
                         .Value;
 
-                    var totalSum = firstTableData
-                       .FirstOrDefault(row => row.Any(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계"))?
+                    decimal totalSum = firstTableData
+                       .FirstOrDefault(row => row.Any(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계"))
                        .SkipWhile(cell => !(cell.Contains("16") && cell.Contains("계")) && cell != "계")
                        .Skip(1)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .FirstOrDefault();
 
-                    var untaxedTotalSum = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("비과세소득")))?
+                    decimal untaxedTotalSum = firstTableData
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("비과세소득")))
                         .SkipWhile(cell => !cell.Contains("비과세소득"))
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
-                    var previousTaxPaid = firstTableData
-                       .FirstOrDefault(row => row.Any(cell => cell.Contains("주(현)근무지")))?
+                    decimal previousTaxPaid = firstTableData
+                       .FirstOrDefault(row => row.Any(cell => cell.Contains("주(현)근무지")))
                        .SkipWhile(cell => !cell.Contains("주(현)근무지"))
                        .Skip(1)
                        .Take(3)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .Sum();
 
-                    var excludedTax = firstTableData
-                       .FirstOrDefault(row => row.Any(cell => cell.Contains("징수세액")))?
+                    decimal excludedTax = firstTableData
+                       .FirstOrDefault(row => row.Any(cell => cell.Contains("징수세액")))
                        .SkipWhile(cell => !cell.Contains("징수세액"))
                        .Skip(1)
                        .Take(3)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .Sum();
 
-                    Console.WriteLine($"name: {nameRow ?? ""}");
-                    Console.WriteLine($"uid: {uid ?? ""}");
-                    Console.WriteLine($"baseYear: {baseYear ?? ""}");
+                    Console.WriteLine($"name: {nameRow}");
+                    Console.WriteLine($"uid: {uid}");
+                    Console.WriteLine($"baseYear: {baseYear}");
                     Console.WriteLine($"totalSum: {totalSum}");
                     Console.WriteLine($"untaxedTotalSum: {untaxedTotalSum}");
                     Console.WriteLine($"previousTaxPaid: {previousTaxPaid}");
@@ -317,82 +317,80 @@ namespace WindowsFormsApp1
                         Console.WriteLine(string.Join("|", row));
                     }
 
-                    var nationalPensionRowIndex = secondTableData
+                    int nationalPensionRowIndex = secondTableData
                         .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("국민연금보험료")))?
-                        .index ?? -1;
+                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("국민연금보험료")))
+                        .index;
 
-                    var nationalPension = secondTableData[nationalPensionRowIndex - 1]
+                    decimal nationalPension = secondTableData[nationalPensionRowIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
-                    var publicOfficialPensionIndex = secondTableData
+                    int publicOfficialPensionIndex = secondTableData
                         .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("공무원연금")))?
-                        .index ?? -1;
+                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("공무원연금")))
+                        .index;
 
-                    var publicOfficialPension = secondTableData[publicOfficialPensionIndex - 1]
+                    decimal publicOfficialPension = secondTableData[publicOfficialPensionIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
-                    var soldierPensionIndex = secondTableData
+                    int soldierPensionIndex = secondTableData
                        .Select((row, index) => new { row, index })
-                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("군인연금")))?
-                       .index ?? -1;
+                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("군인연금")))
+                       .index;
 
-                    var soldierPension = new[] { soldierPensionIndex, soldierPensionIndex - 1 }
-                        .Select(index => secondTableData.ElementAtOrDefault(index))
-                        .Where(row => row != null)
+                    decimal soldierPension = secondTableData
+                      .Where((row, index) => index == soldierPensionIndex || index == soldierPensionIndex - 1)
+                      .SelectMany(row => row.SkipWhile(cell => cell != "대상금액")
+                      .Skip(1))
+                      .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : (decimal?)null)
+                      .FirstOrDefault() ?? 0;
+
+                    int privateSchoolPensionRowIndex = secondTableData
+                        .Select((row, index) => new { row, index })
+                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("사립학교")))
+                        .index;
+
+                    decimal privateSchoolPension = secondTableData
+                        .Where((row, index) => index == privateSchoolPensionRowIndex || index == privateSchoolPensionRowIndex - 1)
                         .SelectMany(row => row.SkipWhile(cell => cell != "대상금액")
                         .Skip(1))
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : (decimal?)null)
-                        .FirstOrDefault(value => value.HasValue) ?? 0;
+                        .FirstOrDefault() ?? 0;
 
-                    var privateSchoolPensionnRowIndex = secondTableData
+                    int postalPensionRowIndex = secondTableData
                         .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("사립학교")))?
-                        .index ?? -1;
+                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("별정우체국")))
+                        .index;
 
-                    var privateSchoolPension = new[] { privateSchoolPensionnRowIndex, privateSchoolPensionnRowIndex - 1 }
-                        .Select(index => secondTableData.ElementAtOrDefault(index))
-                        .Where(row => row != null)
-                        .SelectMany(row => row.SkipWhile(cell => cell != "대상금액")
-                        .Skip(1))
-                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : (decimal?)null)
-                        .FirstOrDefault(value => value.HasValue) ?? 0;
-
-                    var postalPensionRowIndex = secondTableData
-                        .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("별정우체국")))?
-                        .index ?? -1;
-
-                    var postalPension = secondTableData[postalPensionRowIndex - 1]
+                    decimal postalPension = secondTableData[postalPensionRowIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
-                    var healthInsuranceIndex = secondTableData
+                    int healthInsuranceIndex = secondTableData
                        .Select((row, index) => new { row, index })
-                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("건강보험료")))?
-                       .index ?? -1;
+                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("건강보험료")))
+                       .index;
 
-                    var healthInsurance = secondTableData[healthInsuranceIndex]
+                    decimal healthInsurance = secondTableData[healthInsuranceIndex]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                         .FirstOrDefault();
 
-                    var employmentInsuranceIndex = secondTableData
+                    int employmentInsuranceIndex = secondTableData
                         .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("고용보험료")))?
-                        .index ?? -1;
+                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("고용보험료")))
+                        .index;
 
-                    var employmentInsurance = secondTableData[employmentInsuranceIndex - 1]
+                    decimal employmentInsurance = secondTableData[employmentInsuranceIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)

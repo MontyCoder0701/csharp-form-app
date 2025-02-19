@@ -269,8 +269,8 @@ namespace WindowsFormsApp1
                         .Value;
 
                     var totalSum = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("16") && cell.Contains("계")))?
-                       .SkipWhile(cell => !(cell.Contains("16") && cell.Contains("계")))
+                       .FirstOrDefault(row => row.Any(cell => cell == "계"))?
+                       .SkipWhile(cell => !(cell == "계"))
                        .Skip(1)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .FirstOrDefault();
@@ -305,7 +305,6 @@ namespace WindowsFormsApp1
                     Console.WriteLine($"untaxedTotalSum: {untaxedTotalSum}");
                     Console.WriteLine($"previousTaxPaid: {previousTaxPaid}");
                     Console.WriteLine($"excludedTax: {excludedTax}");
-
 
                     List<List<string>> secondTableData = ImportPdfToTable(filePath, 2, 3);
 

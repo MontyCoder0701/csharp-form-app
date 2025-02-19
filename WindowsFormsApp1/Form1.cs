@@ -319,9 +319,7 @@ namespace WindowsFormsApp1
                     }
 
                     int nationalPensionRowIndex = secondTableData
-                        .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("국민연금보험료")))
-                        .index;
+                        .FindIndex(row => row.Any(cell => cell.Contains("국민연금보험료")));
 
                     decimal nationalPension = secondTableData[nationalPensionRowIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
@@ -330,9 +328,7 @@ namespace WindowsFormsApp1
                         .FirstOrDefault();
 
                     int publicOfficialPensionIndex = secondTableData
-                        .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("공무원연금")))
-                        .index;
+                        .FindIndex(row => row.Any(cell => cell.Contains("공무원연금")));
 
                     decimal publicOfficialPension = secondTableData[publicOfficialPensionIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
@@ -341,9 +337,7 @@ namespace WindowsFormsApp1
                         .FirstOrDefault();
 
                     int soldierPensionIndex = secondTableData
-                       .Select((row, index) => new { row, index })
-                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("군인연금")))
-                       .index;
+                        .FindIndex(row => row.Any(cell => cell.Contains("군인연금")));
 
                     decimal soldierPension = secondTableData
                       .Where((row, index) => index == soldierPensionIndex || index == soldierPensionIndex - 1)
@@ -353,21 +347,17 @@ namespace WindowsFormsApp1
                       .FirstOrDefault() ?? 0;
 
                     int privateSchoolPensionRowIndex = secondTableData
-                        .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("사립학교")))
-                        .index;
+                        .FindIndex(row => row.Any(cell => cell.Contains("사립학교")));
 
                     decimal privateSchoolPension = secondTableData
-                        .Where((row, index) => index == privateSchoolPensionRowIndex || index == privateSchoolPensionRowIndex - 1)
-                        .SelectMany(row => row.SkipWhile(cell => cell != "대상금액")
-                        .Skip(1))
-                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : (decimal?)null)
-                        .FirstOrDefault() ?? 0;
+                       .Where((row, index) => index == privateSchoolPensionRowIndex || index == privateSchoolPensionRowIndex - 1)
+                       .SelectMany(row => row.SkipWhile(cell => cell != "대상금액")
+                       .Skip(1))
+                       .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : (decimal?)null)
+                       .FirstOrDefault() ?? 0;
 
                     int postalPensionRowIndex = secondTableData
-                        .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("별정우체국")))
-                        .index;
+                        .FindIndex(row => row.Any(cell => cell.Contains("별정우체국")));
 
                     decimal postalPension = secondTableData[postalPensionRowIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
@@ -376,9 +366,7 @@ namespace WindowsFormsApp1
                         .FirstOrDefault();
 
                     int healthInsuranceIndex = secondTableData
-                       .Select((row, index) => new { row, index })
-                       .FirstOrDefault(x => x.row.Any(cell => cell.Contains("건강보험료")))
-                       .index;
+                        .FindIndex(row => row.Any(cell => cell.Contains("건강보험료")));
 
                     decimal healthInsurance = secondTableData[healthInsuranceIndex]
                         .SkipWhile(cell => cell != "대상금액")
@@ -387,9 +375,7 @@ namespace WindowsFormsApp1
                         .FirstOrDefault();
 
                     int employmentInsuranceIndex = secondTableData
-                        .Select((row, index) => new { row, index })
-                        .FirstOrDefault(x => x.row.Any(cell => cell.Contains("고용보험료")))
-                        .index;
+                        .FindIndex(row => row.Any(cell => cell.Contains("고용보험료")));
 
                     decimal employmentInsurance = secondTableData[employmentInsuranceIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")

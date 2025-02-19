@@ -110,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\Employee.cs" />
+    <Compile Include="Services\PdfManager.cs" />
     <Compile Include="Services\ExcelManager.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

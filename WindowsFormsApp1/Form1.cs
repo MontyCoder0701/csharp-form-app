@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using UglyToad.PdfPig;
 using WindowsFormsApp1.Models;
+using WindowsFormsApp1.Services;
 
 namespace WindowsFormsApp1
 {
@@ -238,7 +238,7 @@ namespace WindowsFormsApp1
                     // TODO: 2024 영수증도 확인 (더존, 세무사랑, 홈택스)
                     // 에러 처리 (잘못된 파일, 잘못된 기준년도, 중도입사자)
                     string filePath = openFileDialog.FileName;
-                    List<List<string>> firstTableData = ImportPdfToTable(filePath, 1);
+                    List<List<string>> firstTableData = PdfManager.ImportPdfToTable(filePath, 1);
 
                     firstTableData = firstTableData
                        .Select(row => row.Select(cell => Regex.Replace(cell, @"\s+", "")).ToList())
@@ -307,7 +307,7 @@ namespace WindowsFormsApp1
                     Console.WriteLine($"previousTaxPaid: {previousTaxPaid}");
                     Console.WriteLine($"excludedTax: {excludedTax}");
 
-                    List<List<string>> secondTableData = ImportPdfToTable(filePath, 2, 3);
+                    List<List<string>> secondTableData = PdfManager.ImportPdfToTable(filePath, 2, 3);
 
                     secondTableData = secondTableData
                        .Select(row => row.Select(cell => Regex.Replace(cell, @"\s+", "")).ToList())
@@ -403,74 +403,6 @@ namespace WindowsFormsApp1
                     MessageBox.Show($"PDF 업로드 중 문제가 발생했습니다. {err.Message}");
                 }
             }
-        }
-
-        // TODO: 별도 클래스에 분리
-        List<List<string>> ImportPdfToTable(string pdfPath, int pageNum = 1, int rowThreshold = 5, int cellThreshold = 30)
-        {
-            List<List<(string text, double x, double y)>> tableRows = new List<List<(string, double, double)>>();
-
-            using (PdfDocument document = PdfDocument.Open(pdfPath))
-            {
-
-                var page = document.GetPage(pageNum);
-                var words = page.GetWords()
-                    .Select(word => (word.Text, word.BoundingBox.Left, word.BoundingBox.Bottom))
-                    .ToList();
-
-                words.Sort((a, b) => b.Bottom.CompareTo(a.Bottom));
-
-                List<(string, double, double)> currentRow = new List<(string, double, double)>();
-                double lastY = double.MaxValue;
-
-                foreach (var (text, x, y) in words)
-                {
-                    if (Math.Abs(y - lastY) > rowThreshold)
-                    {
-                        if (currentRow.Count > 0)
-                        {
-                            tableRows.Add(new List<(string, double, double)>(currentRow));
-                        }
-                        currentRow.Clear();
-                    }
-                    currentRow.Add((text, x, y));
-                    lastY = y;
-                }
-
-                if (currentRow.Count > 0)
-                {
-                    tableRows.Add(currentRow);
-                }
-            }
-
-            List<List<string>> structuredTable = new List<List<string>>();
-
-            foreach (var row in tableRows)
-            {
-                row.Sort((a, b) => a.x.CompareTo(b.x));
-
-                List<string> mergedRow = new List<string>();
-                string currentCell = row[0].text;
-                double lastX = row[0].x;
-
-                for (int i = 1; i < row.Count; i++)
-                {
-                    if (Math.Abs(row[i].x - lastX) < cellThreshold)
-                    {
-                        currentCell += " " + row[i].text;
-                    }
-                    else
-                    {
-                        mergedRow.Add(currentCell);
-                        currentCell = row[i].text;
-                    }
-                    lastX = row[i].x;
-                }
-                mergedRow.Add(currentCell);
-                structuredTable.Add(mergedRow);
-            }
-
-            return structuredTable;
         }
     }
 }

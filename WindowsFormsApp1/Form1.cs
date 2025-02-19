@@ -395,9 +395,8 @@ namespace WindowsFormsApp1
                     // 2025년이면 2024년 급여액, 2024년 차감징수세액으로 DB에 저장됌. 그다음해에는 올해 저장한 2024년 차감징수세액으로 업로드한 PDF 값들로 급여액을 다시 계산하여 업데이트 하고 무한 반복.
                     // 따라서 첫 업로드 해인 경우에는 2024 차감징수세액으로 급여액 계산 안함 (저저번년도 해 것을 쓰기 때문에)
                     var salary = totalSum + untaxedTotalSum - previousTaxPaid - (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance);
-                    Console.WriteLine($"salary: {salary}");
 
-                    MessageBox.Show("새로운 데이터가 업로드되었습니다.");
+                    MessageBox.Show($"기준년도: {baseYear}, 급여액: {salary}, 차감징수세액: {excludedTax}");
                 }
                 catch (Exception err)
                 {

@@ -236,7 +236,7 @@ namespace WindowsFormsApp1
                 try
                 {
                     // TODO: 2024 영수증도 확인 (더존, 세무사랑, 홈택스)
-                    // 에러 처리 (잘못된 파일, 잘못된 기준년도, 중도입사자)
+                    // 에러 처리 (잘못된 파일, 잘못된 기준년도, 중도입사자, 값 없음 (index, out of bounds))
                     string filePath = openFileDialog.FileName;
                     List<List<string>> firstTableData = PdfManager.ImportPdfToTable(filePath, 1);
 

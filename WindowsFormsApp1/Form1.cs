@@ -391,7 +391,7 @@ namespace WindowsFormsApp1
                     // TODO: 급여액 = (근무처별소득명세 계 + 비과세소득 계) - 기납부세액 - [(국민연금보험료 or 공적연금보험료공제) + 건강보험료 + 고용보험료] - (전전년도 차감징수세액)
                     // 2025년이면 2024년 급여액, 2024년 차감징수세액으로 DB에 저장됌. 그다음해에는 올해 저장한 2024년 차감징수세액으로 업로드한 PDF 값들로 급여액을 다시 계산하여 업데이트 하고 무한 반복.
                     // 따라서 첫 업로드 해인 경우에는 2024 차감징수세액으로 급여액 계산 안함 (저저번년도 해 것을 쓰기 때문에)
-                    var salary = totalSum + untaxedTotalSum - previousTaxPaid - (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance);
+                    decimal salary = totalSum + untaxedTotalSum - previousTaxPaid - (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance);
 
                     MessageBox.Show($"이름: {name}, 기준년도: {baseYear}, 급여액: {salary}, 차감징수세액: {excludedTax}");
                 }

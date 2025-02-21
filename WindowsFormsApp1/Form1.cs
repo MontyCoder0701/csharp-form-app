@@ -249,7 +249,7 @@ namespace WindowsFormsApp1
                         Console.WriteLine(string.Join("|", row));
                     }
 
-                    string nameRow = firstTableData
+                    string name = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))
                         .SkipWhile(cell => !cell.Contains("⑥"))
                         .Skip(2)
@@ -259,15 +259,12 @@ namespace WindowsFormsApp1
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))
                         .Last();
 
-                    // TODO: Regex 지양
-                    string datePattern = @"\b\d{4}[-.]\d{2}[-.]\d{2}|\b\d{4}[-.]\d{2}";
                     string baseYear = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))
                         .SkipWhile(cell => !cell.Contains("근무기간"))
                         .Skip(1)
-                        .Select(cell => Regex.Match(cell, datePattern))
-                        .FirstOrDefault(match => match.Success)?
-                        .Value;
+                        .FirstOrDefault()
+                        .Substring(0, 4);
 
                     decimal totalSum = firstTableData
                        .FirstOrDefault(row => row.Any(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계"))
@@ -299,7 +296,7 @@ namespace WindowsFormsApp1
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .Sum();
 
-                    Console.WriteLine($"name: {nameRow}");
+                    Console.WriteLine($"name: {name}");
                     Console.WriteLine($"uid: {uid}");
                     Console.WriteLine($"baseYear: {baseYear}");
                     Console.WriteLine($"totalSum: {totalSum}");
@@ -396,7 +393,7 @@ namespace WindowsFormsApp1
                     // 따라서 첫 업로드 해인 경우에는 2024 차감징수세액으로 급여액 계산 안함 (저저번년도 해 것을 쓰기 때문에)
                     var salary = totalSum + untaxedTotalSum - previousTaxPaid - (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance);
 
-                    MessageBox.Show($"기준년도: {baseYear}, 급여액: {salary}, 차감징수세액: {excludedTax}");
+                    MessageBox.Show($"이름: {name}, 기준년도: {baseYear}, 급여액: {salary}, 차감징수세액: {excludedTax}");
                 }
                 catch (Exception err)
                 {

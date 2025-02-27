@@ -28,8 +28,8 @@ namespace WindowsFormsApp1.Models
 
         public string SalaryBname { get; private set; }
         public string SalaryAcctnum { get; set; }
-        public int SalaryAmt { get; set; }
-        public int SalaryBaseYear { get; set; }
+        public int? SalaryAmt { get; set; }
+        public int? SalaryBaseYear { get; set; }
         public int? DeductibleTax { get; set; }
         public int? DeductibleTaxBaseYear { get; set; }
         public string EmploymentDate { get; set; }
@@ -58,12 +58,14 @@ namespace WindowsFormsApp1.Models
             string emplNum,
             int salaryBcode,
             string salaryAcctnum,
-            int salaryAmt,
-            int salaryBaseYear,
             string employmentDate,
             int isSafe,
             string registdate,
-            string registdateformat
+            string registdateformat,
+            int? salaryAmt = null,
+            int? salaryBaseYear = null,
+            int? deductibleTax = null,
+            int? deductibleTaxBaseYear = null
         )
         {
             EmplSeq = emplSeq;
@@ -77,6 +79,8 @@ namespace WindowsFormsApp1.Models
             SalaryAcctnum = salaryAcctnum;
             SalaryAmt = salaryAmt;
             SalaryBaseYear = salaryBaseYear;
+            DeductibleTax = deductibleTax;
+            DeductibleTaxBaseYear = deductibleTaxBaseYear;
             EmploymentDate = employmentDate;
             IsSafe = isSafe;
             Registdate = registdate;
@@ -108,13 +112,11 @@ namespace WindowsFormsApp1.Models
         [Required(ErrorMessage = "계좌 번호를 입력해야 합니다.")]
         public string SalaryAcctnum { get; set; }
 
-        [Required(ErrorMessage = "급여 금액을 입력해야 합니다.")]
         [Range(1, int.MaxValue, ErrorMessage = "급여 금액은 1원 이상이어야 합니다.")]
-        public int SalaryAmt { get; set; }
+        public int? SalaryAmt { get; set; }
 
-        [Required(ErrorMessage = "기준 연도를 입력해야 합니다.")]
         [Range(1900, 2100, ErrorMessage = "기준 연도는 1900에서 2100 사이여야 합니다.")]
-        public int SalaryBaseYear { get; set; }
+        public int? SalaryBaseYear { get; set; }
 
         [Required(ErrorMessage = "고용 날짜를 입력해야 합니다.")]
         [DataType(DataType.Date, ErrorMessage = "고용 날짜는 올바른 날짜 형식이어야 합니다.")]

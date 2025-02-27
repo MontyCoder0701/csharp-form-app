@@ -236,7 +236,7 @@ namespace WindowsFormsApp1
                 try
                 {
                     // TODO: 2024 영수증도 확인 (더존, 세무사랑, 홈택스)
-                    // 에러 처리 (잘못된 기준년도, 중도입사자)
+                    // 에러 처리 (중도입사자)
                     string filePath = openFileDialog.FileName;
                     List<List<string>> firstTableData = PdfManager.ImportPdfToTable(filePath, 1);
 
@@ -259,12 +259,32 @@ namespace WindowsFormsApp1
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
                         .Last() ?? "";
 
+                    if (name.Length == 0 || uid.Length == 0)
+                    {
+                        throw new Exception("잘못된 파일입니다. 올바른 원천징수영수증 원본을 업로드해주세요.");
+                    }
+
+                    if (name.Contains("*") || uid.Contains("*"))
+                    {
+                        throw new Exception("이름이나 주민번호가 가려져 직원 정보를 알 수 없습니다. 마스킹이 없는 파일을 업로드해주세요.");
+                    }
+
                     string baseYear = firstTableData
                         .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))?
                         .SkipWhile(cell => !cell.Contains("근무기간"))
                         .Skip(1)
                         .FirstOrDefault()
                         .Substring(0, 4) ?? "";
+
+                    if (string.IsNullOrWhiteSpace(baseYear) || !int.TryParse(baseYear, out int year))
+                    {
+                        throw new Exception("잘못된 파일입니다. 올바른 원천징수영수증 원본을 업로드해주세요.");
+                    }
+
+                    if (year != DateTime.Now.Year - 1)
+                    {
+                        throw new Exception("작년 기준년도의 원천징수영수증이 아닙니다. 올바른 파일을 업로드해주세요.");
+                    }
 
                     decimal totalSum = firstTableData
                        .FirstOrDefault(row => row.Any(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계"))?

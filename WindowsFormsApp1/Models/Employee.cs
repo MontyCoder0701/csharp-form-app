@@ -30,6 +30,8 @@ namespace WindowsFormsApp1.Models
         public string SalaryAcctnum { get; set; }
         public int SalaryAmt { get; set; }
         public int SalaryBaseYear { get; set; }
+        public int? DeductibleTax { get; set; }
+        public int? DeductibleTaxBaseYear { get; set; }
         public string EmploymentDate { get; set; }
         public int IsSafe { get; set; }
         public string Registdate { get; }

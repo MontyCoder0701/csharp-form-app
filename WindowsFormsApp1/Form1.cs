@@ -308,7 +308,7 @@ namespace WindowsFormsApp1
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                        .Sum() ?? 0;
 
-                    decimal excludedTax = firstTableData
+                    decimal deductibleTax = firstTableData
                        .FirstOrDefault(row => row.Any(cell => cell.Contains("징수세액")))?
                        .SkipWhile(cell => !cell.Contains("징수세액"))
                        .Skip(1)
@@ -322,7 +322,7 @@ namespace WindowsFormsApp1
                     Console.WriteLine($"totalSum: {totalSum}");
                     Console.WriteLine($"untaxedTotalSum: {untaxedTotalSum}");
                     Console.WriteLine($"previousTaxPaid: {previousTaxPaid}");
-                    Console.WriteLine($"excludedTax: {excludedTax}");
+                    Console.WriteLine($"deductibleTax : {deductibleTax}");
 
                     List<List<string>> secondTableData = PdfManager.ImportPdfToTable(filePath, 2, 3, 25);
 
@@ -413,7 +413,7 @@ namespace WindowsFormsApp1
                     // 따라서 첫 업로드 해인 경우에는 2024 차감징수세액으로 급여액 계산 안함 (저저번년도 해 것을 쓰기 때문에)
                     decimal salary = totalSum + untaxedTotalSum - previousTaxPaid - (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance);
 
-                    MessageBox.Show($"이름: {name}, 기준년도: {baseYear}, 급여액: {salary}, 차감징수세액: {excludedTax}");
+                    MessageBox.Show($"이름: {name}, 기준년도: {baseYear}, 급여액: {salary}, 차감징수세액: {deductibleTax}");
                 }
                 catch (Exception err)
                 {

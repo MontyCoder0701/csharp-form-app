@@ -236,7 +236,7 @@ namespace WindowsFormsApp1
                 try
                 {
                     // TODO: 2024 영수증도 확인 (더존, 세무사랑, 홈택스)
-                    // 에러 처리 (잘못된 파일, 잘못된 기준년도, 중도입사자, 값 없음 (index, out of bounds))
+                    // 에러 처리 (잘못된 기준년도, 중도입사자)
                     string filePath = openFileDialog.FileName;
                     List<List<string>> firstTableData = PdfManager.ImportPdfToTable(filePath, 1);
 
@@ -250,51 +250,51 @@ namespace WindowsFormsApp1
                     }
 
                     string name = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
                         .SkipWhile(cell => !cell.Contains("⑥"))
                         .Skip(2)
-                        .FirstOrDefault();
+                        .FirstOrDefault() ?? "";
 
                     string uid = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))
-                        .Last();
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
+                        .Last() ?? "";
 
                     string baseYear = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))?
                         .SkipWhile(cell => !cell.Contains("근무기간"))
                         .Skip(1)
                         .FirstOrDefault()
-                        .Substring(0, 4);
+                        .Substring(0, 4) ?? "";
 
                     decimal totalSum = firstTableData
-                       .FirstOrDefault(row => row.Any(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계"))
+                       .FirstOrDefault(row => row.Any(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계"))?
                        .SkipWhile(cell => !(cell.Contains("16") && cell.Contains("계")) && cell != "계")
                        .Skip(1)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
-                       .FirstOrDefault();
+                       .FirstOrDefault() ?? 0;
 
                     decimal untaxedTotalSum = firstTableData
-                        .FirstOrDefault(row => row.Any(cell => cell.Contains("비과세소득")))
+                        .FirstOrDefault(row => row.Any(cell => cell.Contains("비과세소득")))?
                         .SkipWhile(cell => !cell.Contains("비과세소득"))
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
-                        .FirstOrDefault();
+                        .FirstOrDefault() ?? 0;
 
                     decimal previousTaxPaid = firstTableData
-                       .FirstOrDefault(row => row.Any(cell => cell.Contains("주(현)근무지")))
+                       .FirstOrDefault(row => row.Any(cell => cell.Contains("주(현)근무지")))?
                        .SkipWhile(cell => !cell.Contains("주(현)근무지"))
                        .Skip(1)
                        .Take(3)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
-                       .Sum();
+                       .Sum() ?? 0;
 
                     decimal excludedTax = firstTableData
-                       .FirstOrDefault(row => row.Any(cell => cell.Contains("징수세액")))
+                       .FirstOrDefault(row => row.Any(cell => cell.Contains("징수세액")))?
                        .SkipWhile(cell => !cell.Contains("징수세액"))
                        .Skip(1)
                        .Take(3)
                        .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
-                       .Sum();
+                       .Sum() ?? 0;
 
                     Console.WriteLine($"name: {name}");
                     Console.WriteLine($"uid: {uid}");
@@ -304,7 +304,7 @@ namespace WindowsFormsApp1
                     Console.WriteLine($"previousTaxPaid: {previousTaxPaid}");
                     Console.WriteLine($"excludedTax: {excludedTax}");
 
-                    List<List<string>> secondTableData = PdfManager.ImportPdfToTable(filePath, 2, 3);
+                    List<List<string>> secondTableData = PdfManager.ImportPdfToTable(filePath, 2, 3, 25);
 
                     secondTableData = secondTableData
                        .Select(row => row.Select(cell => Regex.Replace(cell, @"\s+", "")).ToList())
@@ -318,7 +318,7 @@ namespace WindowsFormsApp1
                     int nationalPensionRowIndex = secondTableData
                         .FindIndex(row => row.Any(cell => cell.Contains("국민연금보험료")));
 
-                    decimal nationalPension = secondTableData[nationalPensionRowIndex - 1]
+                    decimal nationalPension = nationalPensionRowIndex < 0 ? 0 : secondTableData[nationalPensionRowIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
@@ -327,7 +327,7 @@ namespace WindowsFormsApp1
                     int publicOfficialPensionIndex = secondTableData
                         .FindIndex(row => row.Any(cell => cell.Contains("공무원연금")));
 
-                    decimal publicOfficialPension = secondTableData[publicOfficialPensionIndex - 1]
+                    decimal publicOfficialPension = publicOfficialPensionIndex < 0 ? 0 : secondTableData[publicOfficialPensionIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
@@ -356,7 +356,7 @@ namespace WindowsFormsApp1
                     int postalPensionRowIndex = secondTableData
                         .FindIndex(row => row.Any(cell => cell.Contains("별정우체국")));
 
-                    decimal postalPension = secondTableData[postalPensionRowIndex - 1]
+                    decimal postalPension = postalPensionRowIndex < 0 ? 0 : secondTableData[postalPensionRowIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
@@ -365,7 +365,7 @@ namespace WindowsFormsApp1
                     int healthInsuranceIndex = secondTableData
                         .FindIndex(row => row.Any(cell => cell.Contains("건강보험료")));
 
-                    decimal healthInsurance = secondTableData[healthInsuranceIndex]
+                    decimal healthInsurance = healthInsuranceIndex < 0 ? 0 : secondTableData[healthInsuranceIndex]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
@@ -374,7 +374,7 @@ namespace WindowsFormsApp1
                     int employmentInsuranceIndex = secondTableData
                         .FindIndex(row => row.Any(cell => cell.Contains("고용보험료")));
 
-                    decimal employmentInsurance = secondTableData[employmentInsuranceIndex - 1]
+                    decimal employmentInsurance = employmentInsuranceIndex < 0 ? 0 : secondTableData[employmentInsuranceIndex - 1]
                         .SkipWhile(cell => cell != "대상금액")
                         .Skip(1)
                         .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)

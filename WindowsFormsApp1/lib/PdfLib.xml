@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PdfLib</name>
+    </assembly>
+    <members>
+        <member name="T:PdfLib.PdfManager">
+            <summary>
+            PDF 파일을 읽어 텍스트를 테이블 형태로 변환하는 클래스입니다.
+            </summary>
+        </member>
+        <member name="M:PdfLib.PdfManager.ImportPdfToTable(System.String,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            PDF 파일에서 텍스트를 읽어 표 형식으로 변환합니다.
+            </summary>
+            <param name="pdfPath">PDF 파일의 경로</param>
+            <param name="pageNum">분석할 페이지 번호 (기본값: 1)</param>
+            <param name="rowThreshold">행을 구분하는 Y 좌표 차이 임계값 (기본값: 5)</param>
+            <param name="cellThreshold">셀을 병합할 X 좌표 차이 임계값 (기본값: 30)</param>
+            <returns>PDF에서 추출된 테이블 데이터 (각 행이 리스트로 구성됨)</returns>
+        </member>
+    </members>
+</doc>

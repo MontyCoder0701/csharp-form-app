@@ -307,21 +307,21 @@ namespace WindowsFormsApp1
                     // 밑은 예시 흐름입니다.
                     // 중도입사자의 경우에는 업데이트 하지 않도록 처리 부탁드립니다.
                     // 저는 처음부터 중복 여부를 전부 제거하고 시작했습니다만, 편한 방법을 사용하셔도 됩니다.
-                    var uniquePdfDataList = pdfEmployeeDataList
+                    List<PdfEmployeeData> uniquePdfDataList = pdfEmployeeDataList
                         .GroupBy(emp => new { emp.Name, emp.Uidnum7 })
                         .Where(g => g.Count() == 1)
                         .SelectMany(g => g)
                         .ToList();
 
-                    var uniqueEmployeeList = employees
+                    List<Employee> uniqueEmployeeList = employees
                       .GroupBy(emp => new { emp.EmplNum, emp.Uidnum7 })
                       .Where(g => g.Count() == 1)
                       .SelectMany(g => g)
                       .ToList();
 
-                    foreach (var pdfEmployeeData in uniquePdfDataList)
+                    foreach (PdfEmployeeData pdfEmployeeData in uniquePdfDataList)
                     {
-                        foreach (var employee in uniqueEmployeeList)
+                        foreach (Employee employee in uniqueEmployeeList)
                         {
                             if (employee.EmplName == pdfEmployeeData.Name && employee.Uidnum7 == pdfEmployeeData.Uidnum7)
                             {

@@ -111,7 +111,7 @@ namespace WindowsFormsApp1.Services
                .SkipWhile(cell => !cell.Contains("징수세액"))
                .Skip(1)
                .Take(3)
-               .Select(cell => int.TryParse(cell.Trim().Replace(",", ""), out var value) ? value : 0)
+               .Select(cell => int.TryParse(cell.Trim().Replace(",", ""), out int value) ? value : 0)
                .Sum() ?? 0;
 
             // 디버깅용
@@ -242,11 +242,11 @@ namespace WindowsFormsApp1.Services
         {
             List<PdfEmployeeData> employeeDataList = new List<PdfEmployeeData>();
 
-            foreach (var filePath in filePaths)
+            foreach (string filePath in filePaths)
             {
                 try
                 {
-                    var extractor = PdfEmployeeDataExtractorFactory.GetExtractor(DateTime.Now.Year - 1);
+                    IPdfEmployeeDataExtractor extractor = PdfEmployeeDataExtractorFactory.GetExtractor(DateTime.Now.Year - 1);
                     PdfEmployeeData pdfEmployeeData = extractor.ExtractPdfEmployeeData(filePath);
                     employeeDataList.Add(pdfEmployeeData);
                 }

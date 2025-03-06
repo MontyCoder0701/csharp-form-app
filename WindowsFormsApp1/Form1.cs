@@ -248,7 +248,7 @@ namespace WindowsFormsApp1
                     // 중도입사자의 경우에는 업데이트 하지 않도록 처리 부탁드립니다.
                     Employee updatingEmployee = employees.First();
 
-                    if (!(updatingEmployee.EmplName == pdfEmployeeData.name && updatingEmployee.Uidnum7 == pdfEmployeeData.uidnum7))
+                    if (!(updatingEmployee.EmplName == pdfEmployeeData.Name && updatingEmployee.Uidnum7 == pdfEmployeeData.Uidnum7))
                     {
                         MessageBox.Show("해당 직원에 대한 올바른 원천진수영수증이 아닙니다.");
                         return;
@@ -258,13 +258,13 @@ namespace WindowsFormsApp1
                         ? updatingEmployee.DeductibleTax ?? 0
                         : 0;
 
-                    updatingEmployee.SalaryAmt = pdfEmployeeData.preCalculatedSalary - validDeductibleTax;
-                    updatingEmployee.SalaryBaseYear = pdfEmployeeData.baseYear;
+                    updatingEmployee.SalaryAmt = pdfEmployeeData.PreCalculatedSalary - validDeductibleTax;
+                    updatingEmployee.SalaryBaseYear = pdfEmployeeData.BaseYear;
 
-                    updatingEmployee.DeductibleTax = pdfEmployeeData.deductibleTax;
-                    updatingEmployee.DeductibleTaxBaseYear = pdfEmployeeData.baseYear;
+                    updatingEmployee.DeductibleTax = pdfEmployeeData.DeductibleTax;
+                    updatingEmployee.DeductibleTaxBaseYear = pdfEmployeeData.BaseYear;
 
-                    MessageBox.Show($"{pdfEmployeeData.name}의 급여가 등록되었습니다.");
+                    MessageBox.Show($"{pdfEmployeeData.Name}의 급여가 등록되었습니다.");
 
                 }
                 catch (Exception err)
@@ -308,7 +308,7 @@ namespace WindowsFormsApp1
                     // 중도입사자의 경우에는 업데이트 하지 않도록 처리 부탁드립니다.
                     // 저는 처음부터 중복 여부를 전부 제거하고 시작했습니다만, 편한 방법을 사용하셔도 됩니다.
                     var uniquePdfDataList = pdfEmployeeDataList
-                        .GroupBy(emp => new { emp.name, emp.uidnum7 })
+                        .GroupBy(emp => new { emp.Name, emp.Uidnum7 })
                         .Where(g => g.Count() == 1)
                         .SelectMany(g => g)
                         .ToList();
@@ -323,19 +323,19 @@ namespace WindowsFormsApp1
                     {
                         foreach (var employee in uniqueEmployeeList)
                         {
-                            if (employee.EmplName == pdfEmployeeData.name && employee.Uidnum7 == pdfEmployeeData.uidnum7)
+                            if (employee.EmplName == pdfEmployeeData.Name && employee.Uidnum7 == pdfEmployeeData.Uidnum7)
                             {
                                 int validDeductibleTax = (employee.DeductibleTaxBaseYear == DateTime.Now.Year - 2)
                                     ? employee.DeductibleTax ?? 0
                                     : 0;
 
-                                employee.SalaryAmt = pdfEmployeeData.preCalculatedSalary - validDeductibleTax;
-                                employee.SalaryBaseYear = pdfEmployeeData.baseYear;
+                                employee.SalaryAmt = pdfEmployeeData.PreCalculatedSalary - validDeductibleTax;
+                                employee.SalaryBaseYear = pdfEmployeeData.BaseYear;
 
-                                employee.DeductibleTax = pdfEmployeeData.deductibleTax;
-                                employee.DeductibleTaxBaseYear = pdfEmployeeData.baseYear;
+                                employee.DeductibleTax = pdfEmployeeData.DeductibleTax;
+                                employee.DeductibleTaxBaseYear = pdfEmployeeData.BaseYear;
 
-                                MessageBox.Show($"{pdfEmployeeData.name}의 급여가 등록되었습니다.");
+                                MessageBox.Show($"{pdfEmployeeData.Name}의 급여가 등록되었습니다.");
                             }
                         }
                     }

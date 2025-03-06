@@ -6,27 +6,32 @@ using PdfLib;
 
 namespace WindowsFormsApp1.Services
 {
-    internal class PdfEmployeeData
+    public class PdfEmployeeData
     {
-        public string name;
-        public string uidnum7;
-        public int baseYear;
-        public int preCalculatedSalary;
-        public int deductibleTax;
+        public string Name { get; }
+        public string Uidnum7 { get; }
+        public int BaseYear { get; }
+        public int PreCalculatedSalary { get; }
+        public int DeductibleTax { get; }
 
         public PdfEmployeeData(string name, string uidnum7, int baseYear, int preCalculatedSalary, int deductibleTax)
         {
-            this.name = name;
-            this.uidnum7 = uidnum7;
-            this.baseYear = baseYear;
-            this.preCalculatedSalary = preCalculatedSalary;
-            this.deductibleTax = deductibleTax;
+            Name = name;
+            Uidnum7 = uidnum7;
+            BaseYear = baseYear;
+            PreCalculatedSalary = preCalculatedSalary;
+            DeductibleTax = deductibleTax;
         }
     }
 
-    internal class PdfService
+    public interface IPdfEmployeeDataExtractor
     {
-        private static PdfEmployeeData Extract2024PdfEmployeeDataFromFile(string filePath)
+        PdfEmployeeData ExtractPdfEmployeeData(string filePath);
+    }
+
+    public class PdfEmployeeDataExtractor2024 : IPdfEmployeeDataExtractor
+    {
+        public PdfEmployeeData ExtractPdfEmployeeData(string filePath)
         {
             List<List<string>> firstTableData = PdfManager.ImportPdfToTable(filePath, 1);
 
@@ -179,7 +184,27 @@ namespace WindowsFormsApp1.Services
 
             return new PdfEmployeeData(name, uid, baseYear, preCalculatedSalary, deductibleTax);
         }
+    }
 
+    public static class PdfEmployeeDataExtractorFactory
+    {
+        public static IPdfEmployeeDataExtractor GetExtractor(int year)
+        {
+            switch (year)
+            {
+                case 2024:
+                    return new PdfEmployeeDataExtractor2024();
+
+                default:
+                    throw new NotImplementedException($"Extractor for {year} is not implemented.");
+            }
+        }
+    }
+
+    // 위까지 DLL 분리
+
+    internal class PdfService
+    {
         public static List<PdfEmployeeData> ExtractPdfEmployeeDataFromFiles(List<string> filePaths)
         {
             List<PdfEmployeeData> employeeDataList = new List<PdfEmployeeData>();
@@ -188,8 +213,8 @@ namespace WindowsFormsApp1.Services
             {
                 try
                 {
-                    // 매년 해당 함수만 바꾸면 됌
-                    PdfEmployeeData pdfEmployeeData = Extract2024PdfEmployeeDataFromFile(filePath);
+                    var extractor = PdfEmployeeDataExtractorFactory.GetExtractor(DateTime.Now.Year - 1);
+                    PdfEmployeeData pdfEmployeeData = extractor.ExtractPdfEmployeeData(filePath);
                     employeeDataList.Add(pdfEmployeeData);
                 }
                 catch

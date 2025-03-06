@@ -196,7 +196,7 @@ namespace WindowsFormsApp1.Services
                     return new PdfEmployeeDataExtractor2024();
 
                 default:
-                    throw new NotImplementedException($"Extractor for {year} is not implemented.");
+                    return new PdfEmployeeDataExtractor2024();
             }
         }
     }

@@ -10,11 +10,11 @@ namespace WindowsFormsApp1.Services
     {
         public string name;
         public string uidnum7;
-        public string baseYear;
-        public decimal preCalculatedSalary;
-        public decimal deductibleTax;
+        public int baseYear;
+        public int preCalculatedSalary;
+        public int deductibleTax;
 
-        public PdfEmployeeData(string name, string uidnum7, string baseYear, decimal preCalculatedSalary, decimal deductibleTax)
+        public PdfEmployeeData(string name, string uidnum7, int baseYear, int preCalculatedSalary, int deductibleTax)
         {
             this.name = name;
             this.uidnum7 = uidnum7;
@@ -56,19 +56,19 @@ namespace WindowsFormsApp1.Services
                 throw new Exception("이름이나 주민번호가 가려져 직원 정보를 알 수 없습니다.");
             }
 
-            string baseYear = firstTableData
+            int baseYear = firstTableData
                 .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))?
                 .SkipWhile(cell => !cell.Contains("근무기간"))
                 .Skip(1)
-                .FirstOrDefault()
-                .Substring(0, 4) ?? "";
+                .Select(cell => int.TryParse(cell.Trim().Substring(0, 4), out int value) ? value : 0)
+                .FirstOrDefault() ?? 0;
 
-            if (string.IsNullOrWhiteSpace(baseYear) || !int.TryParse(baseYear, out int year))
+            if (baseYear == 0)
             {
                 throw new Exception("잘못된 파일입니다.");
             }
 
-            if (year != DateTime.Now.Year - 1)
+            if (baseYear != DateTime.Now.Year - 1)
             {
                 throw new Exception("작년 기준년도의 원천징수영수증이 아닙니다.");
             }
@@ -95,12 +95,12 @@ namespace WindowsFormsApp1.Services
                .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                .Sum() ?? 0;
 
-            decimal deductibleTax = firstTableData
+            int deductibleTax = firstTableData
                .FirstOrDefault(row => row.Any(cell => cell.Contains("징수세액")))?
                .SkipWhile(cell => !cell.Contains("징수세액"))
                .Skip(1)
                .Take(3)
-               .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
+               .Select(cell => int.TryParse(cell.Trim().Replace(",", ""), out var value) ? value : 0)
                .Sum() ?? 0;
 
             List<List<string>> secondTableData = PdfManager.ImportPdfToTable(filePath, 2, 3, 25);
@@ -174,7 +174,8 @@ namespace WindowsFormsApp1.Services
                 .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
                 .FirstOrDefault();
 
-            decimal preCalculatedSalary = totalSum + untaxedTotalSum - previousTaxPaid - (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance);
+            int preCalculatedSalary = Convert.ToInt32(totalSum + untaxedTotalSum - previousTaxPaid -
+                (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance));
 
             return new PdfEmployeeData(name, uid, baseYear, preCalculatedSalary, deductibleTax);
         }

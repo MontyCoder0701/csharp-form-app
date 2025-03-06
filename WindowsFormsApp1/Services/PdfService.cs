@@ -196,7 +196,6 @@ namespace WindowsFormsApp1.Services
                 {
                     continue;
                 }
-
             }
 
             return employeeDataList;

@@ -42,7 +42,9 @@ namespace WindowsFormsApp1.Services
 
             string uid = firstTableData
                 .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
-                .Last() ?? "";
+                .Last()
+                .Substring(0, 7)
+                .Replace("-", "") ?? "";
 
             if (name.Length == 0 || uid.Length == 0)
             {

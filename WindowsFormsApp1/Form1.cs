@@ -237,7 +237,14 @@ namespace WindowsFormsApp1
                     string filePath = openFileDialog.FileName;
                     PdfEmployeeData pdfEmployeeData = PdfService.ExtractPdfEmployeeDataFromFiles(new List<string> { filePath }).FirstOrDefault();
 
-                    MessageBox.Show($"이름: {pdfEmployeeData.name}, 기준년도: {pdfEmployeeData.baseYear}, 작년차감징수세액 반영 안된 급여액: {pdfEmployeeData.preCalculatedSalary}, 차감징수세액: {pdfEmployeeData.deductibleTax}");
+                    if (pdfEmployeeData == null)
+                    {
+                        MessageBox.Show("올바른 원천진수영수증이 아닙니다.");
+                        return;
+                    }
+
+                    MessageBox.Show($"이름: {pdfEmployeeData.name}, 주민번호: {pdfEmployeeData.uidnum7}, 기준년도: {pdfEmployeeData.baseYear}, 작년차감징수세액 반영 안된 급여액: {pdfEmployeeData.preCalculatedSalary}, 차감징수세액: {pdfEmployeeData.deductibleTax}");
+
                 }
                 catch (Exception err)
                 {
@@ -269,9 +276,15 @@ namespace WindowsFormsApp1
 
                     List<PdfEmployeeData> pdfEmployeeDataList = PdfService.ExtractPdfEmployeeDataFromFiles(pdfFiles);
 
+                    if (pdfEmployeeDataList.Count == 0)
+                    {
+                        MessageBox.Show("선택한 폴더에 올바른 원천징수영수증 파일이 없습니다.");
+                        return;
+                    }
+
                     foreach (var pdfEmployeeData in pdfEmployeeDataList)
                     {
-                        MessageBox.Show($"이름: {pdfEmployeeData.name}, 기준년도: {pdfEmployeeData.baseYear}, 작년차감징수세액 반영 안된 급여액: {pdfEmployeeData.preCalculatedSalary}, 차감징수세액: {pdfEmployeeData.deductibleTax}");
+                        MessageBox.Show($"이름: {pdfEmployeeData.name}, 주민번호: {pdfEmployeeData.uidnum7}, 기준년도: {pdfEmployeeData.baseYear}, 작년차감징수세액 반영 안된 급여액: {pdfEmployeeData.preCalculatedSalary}, 차감징수세액: {pdfEmployeeData.deductibleTax}");
                     }
                 }
                 catch (Exception err)

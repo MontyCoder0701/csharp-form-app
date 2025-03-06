@@ -39,6 +39,12 @@ namespace WindowsFormsApp1.Services
                .Select(row => row.Select(cell => Regex.Replace(cell, @"\s+", "")).ToList())
                .ToList();
 
+            // 디버깅용
+            foreach (var row in firstTableData)
+            {
+                Console.WriteLine(string.Join("|", row));
+            }
+
             string name = firstTableData
                   .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
                   .SkipWhile(cell => !cell.Contains("⑥"))
@@ -51,15 +57,15 @@ namespace WindowsFormsApp1.Services
                 .Substring(0, 8)
                 .Replace("-", "") ?? "";
 
-            if (name.Length == 0 || uid.Length == 0)
-            {
-                throw new Exception("잘못된 파일입니다.");
-            }
+            //if (name.Length == 0 || uid.Length == 0)
+            //{
+            //    throw new Exception("잘못된 파일입니다.");
+            //}
 
-            if (name.Contains("*") || uid.Contains("*"))
-            {
-                throw new Exception("이름이나 주민번호가 가려져 직원 정보를 알 수 없습니다.");
-            }
+            //if (name.Contains("*") || uid.Contains("*"))
+            //{
+            //    throw new Exception("이름이나 주민번호가 가려져 직원 정보를 알 수 없습니다.");
+            //}
 
             int baseYear = firstTableData
                 .FirstOrDefault(row => row.Any(cell => cell.Contains("근무기간")))?
@@ -68,15 +74,15 @@ namespace WindowsFormsApp1.Services
                 .Select(cell => int.TryParse(cell.Trim().Substring(0, 4), out int value) ? value : 0)
                 .FirstOrDefault() ?? 0;
 
-            if (baseYear == 0)
-            {
-                throw new Exception("잘못된 파일입니다.");
-            }
+            //if (baseYear == 0)
+            //{
+            //    throw new Exception("잘못된 파일입니다.");
+            //}
 
-            if (baseYear != DateTime.Now.Year - 1)
-            {
-                throw new Exception("작년 기준년도의 원천징수영수증이 아닙니다.");
-            }
+            //if (baseYear != DateTime.Now.Year - 1)
+            //{
+            //    throw new Exception("작년 기준년도의 원천징수영수증이 아닙니다.");
+            //}
 
             decimal totalSum = firstTableData
                .FirstOrDefault(row => row.Any(cell => (cell.Contains("16") && cell.Contains("계")) || cell == "계"))?
@@ -108,11 +114,27 @@ namespace WindowsFormsApp1.Services
                .Select(cell => int.TryParse(cell.Trim().Replace(",", ""), out var value) ? value : 0)
                .Sum() ?? 0;
 
+            // 디버깅용
+            Console.WriteLine("------------");
+            Console.WriteLine($"name: {name}");
+            Console.WriteLine($"uid: {uid}");
+            Console.WriteLine($"baseYear: {baseYear}");
+            Console.WriteLine($"totalSum: {totalSum}");
+            Console.WriteLine($"untaxedTotalSum: {untaxedTotalSum}");
+            Console.WriteLine($"previousTaxPaid: {previousTaxPaid}");
+            Console.WriteLine($"deductibleTax: {deductibleTax}");
+
             List<List<string>> secondTableData = PdfManager.ImportPdfToTable(filePath, 2, 3, 25);
 
             secondTableData = secondTableData
                .Select(row => row.Select(cell => Regex.Replace(cell, @"\s+", "")).ToList())
                .ToList();
+
+            // 디버깅용
+            foreach (var row in secondTableData)
+            {
+                Console.WriteLine(string.Join("|", row));
+            }
 
             int nationalPensionRowIndex = secondTableData
                     .FindIndex(row => row.Any(cell => cell.Contains("국민연금보험료")));
@@ -181,6 +203,17 @@ namespace WindowsFormsApp1.Services
 
             int preCalculatedSalary = Convert.ToInt32(totalSum + untaxedTotalSum - previousTaxPaid -
                 (nationalPension + publicOfficialPension + soldierPension + privateSchoolPension + postalPension + healthInsurance + employmentInsurance));
+
+            // 디버깅용
+            Console.WriteLine("------------");
+            Console.WriteLine($"nationalPension: {nationalPension}");
+            Console.WriteLine($"publicOfficialPension: {publicOfficialPension}");
+            Console.WriteLine($"soldierPension: {soldierPension}");
+            Console.WriteLine($"privateSchoolPension: {privateSchoolPension}");
+            Console.WriteLine($"postalPension: {postalPension}");
+            Console.WriteLine($"healthInsurance: {healthInsurance}");
+            Console.WriteLine($"employmentInsurance: {employmentInsurance}");
+            Console.WriteLine($"preCalculatedSalary: {preCalculatedSalary}");
 
             return new PdfEmployeeData(name, uid, baseYear, preCalculatedSalary, deductibleTax);
         }

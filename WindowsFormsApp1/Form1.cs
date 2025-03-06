@@ -243,8 +243,6 @@ namespace WindowsFormsApp1
                         return;
                     }
 
-                    MessageBox.Show($"이름: {pdfEmployeeData.name}, 주민번호: {pdfEmployeeData.uidnum7}, 기준년도: {pdfEmployeeData.baseYear}, 작년차감징수세액 반영 안된 급여액: {pdfEmployeeData.preCalculatedSalary}, 차감징수세액: {pdfEmployeeData.deductibleTax}");
-
                     // 여기서부터는 메인에서 DB와 함께 처리하는 흐름입니다.
                     // 한 직원의 정보 업데이트 하는 예시를 적어놓겠습니다.
                     // 중도입사자의 경우에는 업데이트 하지 않도록 처리 부탁드립니다.
@@ -255,6 +253,16 @@ namespace WindowsFormsApp1
                         MessageBox.Show("해당 직원에 대한 올바른 원천진수영수증이 아닙니다.");
                         return;
                     }
+
+                    int validDeductibleTax = (updatingEmployee.DeductibleTaxBaseYear - 2 == DateTime.Now.Year - 2)
+                        ? updatingEmployee.DeductibleTax ?? 0
+                        : 0;
+
+                    updatingEmployee.SalaryAmt = pdfEmployeeData.preCalculatedSalary - validDeductibleTax;
+                    updatingEmployee.DeductibleTaxBaseYear = pdfEmployeeData.baseYear;
+                    updatingEmployee.SalaryBaseYear = pdfEmployeeData.baseYear;
+
+                    MessageBox.Show($"이름: {pdfEmployeeData.name}의 급여가 등록되었습니다.");
 
                 }
                 catch (Exception err)

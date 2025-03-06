@@ -245,6 +245,8 @@ namespace WindowsFormsApp1
 
                     MessageBox.Show($"이름: {pdfEmployeeData.name}, 주민번호: {pdfEmployeeData.uidnum7}, 기준년도: {pdfEmployeeData.baseYear}, 작년차감징수세액 반영 안된 급여액: {pdfEmployeeData.preCalculatedSalary}, 차감징수세액: {pdfEmployeeData.deductibleTax}");
 
+                    //  여기서부터는 메인에서 DB와 함께 처리하는 흐름입니다.
+
                 }
                 catch (Exception err)
                 {
@@ -286,6 +288,9 @@ namespace WindowsFormsApp1
                     {
                         MessageBox.Show($"이름: {pdfEmployeeData.name}, 주민번호: {pdfEmployeeData.uidnum7}, 기준년도: {pdfEmployeeData.baseYear}, 작년차감징수세액 반영 안된 급여액: {pdfEmployeeData.preCalculatedSalary}, 차감징수세액: {pdfEmployeeData.deductibleTax}");
                     }
+
+                    //  여기서부터는 메인에서 DB와 함께 처리하는 흐름입니다.
+
                 }
                 catch (Exception err)
                 {

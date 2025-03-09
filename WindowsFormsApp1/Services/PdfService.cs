@@ -40,10 +40,10 @@ namespace WindowsFormsApp1.Services
                .ToList();
 
             // 디버깅용
-            foreach (var row in firstTableData)
-            {
-                Console.WriteLine(string.Join("|", row));
-            }
+            //foreach (var row in firstTableData)
+            //{
+            //    Console.WriteLine(string.Join("|", row));
+            //}
 
             string name = firstTableData
                   .FirstOrDefault(row => row.Any(cell => cell.Contains("⑥") && row.Any(c => c.Contains("⑦"))))?
@@ -131,10 +131,10 @@ namespace WindowsFormsApp1.Services
                .ToList();
 
             // 디버깅용
-            foreach (var row in secondTableData)
-            {
-                Console.WriteLine(string.Join("|", row));
-            }
+            //foreach (var row in secondTableData)
+            //{
+            //    Console.WriteLine(string.Join("|", row));
+            //}
 
             int nationalPensionRowIndex = secondTableData
                     .FindIndex(row => row.Any(cell => cell.Contains("국민연금보험료")));
@@ -146,13 +146,14 @@ namespace WindowsFormsApp1.Services
                 .FirstOrDefault();
 
             int publicOfficialPensionIndex = secondTableData
-                .FindIndex(row => row.Any(cell => cell.Contains("공무원연금")));
+                .FindIndex(row => row.Any(cell => cell.Contains("공무원")));
 
-            decimal publicOfficialPension = publicOfficialPensionIndex < 0 ? 0 : secondTableData[publicOfficialPensionIndex - 1]
-                .SkipWhile(cell => cell != "대상금액")
-                .Skip(1)
-                .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : 0)
-                .FirstOrDefault();
+            decimal publicOfficialPension = secondTableData
+              .Where((row, index) => index == publicOfficialPensionIndex || index == publicOfficialPensionIndex - 1)
+              .SelectMany(row => row.SkipWhile(cell => cell != "대상금액")
+              .Skip(1))
+              .Select(cell => decimal.TryParse(cell.Trim(), out decimal value) ? value : (decimal?)null)
+              .FirstOrDefault() ?? 0;
 
             int soldierPensionIndex = secondTableData
                 .FindIndex(row => row.Any(cell => cell.Contains("군인연금")));

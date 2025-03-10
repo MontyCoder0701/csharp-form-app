@@ -246,8 +246,13 @@ namespace WindowsFormsApp1
 
                     // 여기서부터는 메인에서 DB와 함께 처리하는 흐름입니다.
                     // 밑은 한 직원의 정보 업데이트 하는 예시입니다.
-                    // 중도입사자의 경우에는 업데이트 하지 않도록 처리 부탁드립니다.
                     Employee updatingEmployee = employees.First();
+
+                    if (int.Parse(updatingEmployee.EmploymentDate.Substring(0, 4)) == DateTime.Now.Year)
+                    {
+                        MessageBox.Show("중도입사자는 원천진수영수증으로 실수령액 계산이 불가합니다.");
+                        return;
+                    }
 
                     if (!(updatingEmployee.EmplName == pdfEmployeeData.Name && updatingEmployee.Uidnum7 == pdfEmployeeData.Uidnum7))
                     {
@@ -306,7 +311,6 @@ namespace WindowsFormsApp1
 
                     // 여기서부터는 메인에서 DB와 함께 처리하는 흐름입니다.
                     // 밑은 예시 흐름입니다.
-                    // 중도입사자의 경우에는 업데이트 하지 않도록 처리 부탁드립니다.
                     // 저는 처음부터 중복 여부를 전부 제거하고 시작했습니다만, 편한 방법을 사용하셔도 됩니다.
                     List<PdfEmployeeData> uniquePdfDataList = pdfEmployeeDataList
                         .GroupBy(emp => new { emp.Name, emp.Uidnum7 })
@@ -324,6 +328,11 @@ namespace WindowsFormsApp1
                     {
                         foreach (Employee employee in uniqueEmployeeList)
                         {
+                            if (int.Parse(employee.EmploymentDate.Substring(0, 4)) == DateTime.Now.Year)
+                            {
+                                continue;
+                            }
+
                             if (employee.EmplName == pdfEmployeeData.Name && employee.Uidnum7 == pdfEmployeeData.Uidnum7)
                             {
                                 int validDeductibleTax = (employee.DeductibleTaxBaseYear == DateTime.Now.Year - 2)

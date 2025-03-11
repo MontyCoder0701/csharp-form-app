@@ -248,12 +248,6 @@ namespace WindowsFormsApp1
                     // 밑은 한 직원의 정보 업데이트 하는 예시입니다.
                     Employee updatingEmployee = employees.First();
 
-                    if (int.Parse(updatingEmployee.EmploymentDate.Substring(0, 4)) == DateTime.Now.Year)
-                    {
-                        MessageBox.Show("중도입사자는 원천진수영수증으로 실수령액 계산이 불가합니다.");
-                        return;
-                    }
-
                     if (!(updatingEmployee.EmplName == pdfEmployeeData.Name && updatingEmployee.Uidnum7 == pdfEmployeeData.Uidnum7))
                     {
                         MessageBox.Show("해당 직원에 대한 올바른 원천진수영수증이 아닙니다.");
@@ -328,11 +322,6 @@ namespace WindowsFormsApp1
                     {
                         foreach (Employee employee in uniqueEmployeeList)
                         {
-                            if (int.Parse(employee.EmploymentDate.Substring(0, 4)) == DateTime.Now.Year)
-                            {
-                                continue;
-                            }
-
                             if (employee.EmplName == pdfEmployeeData.Name && employee.Uidnum7 == pdfEmployeeData.Uidnum7)
                             {
                                 int validDeductibleTax = (employee.DeductibleTaxBaseYear == DateTime.Now.Year - 2)

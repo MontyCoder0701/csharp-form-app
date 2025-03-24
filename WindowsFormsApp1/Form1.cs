@@ -109,10 +109,11 @@ namespace WindowsFormsApp1
                         GetDisplayIsSafe = emp.GetDisplayIsSafe
                     });
 
+                    // DTO와 칼람명 Dictionary를 활용하여 저장할 JSON 형태로 변환합니다.
                     string jsonData = JsonConvert.SerializeObject(excelDtos);
-
                     jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Key, kv.Value));
 
+                    // DLL에서 호출
                     ExcelManager.ExportJsonToExcel(filePath, jsonData);
 
                     MessageBox.Show("파일이 저장되었습니다.");
@@ -150,10 +151,13 @@ namespace WindowsFormsApp1
                 try
                 {
                     string filePath = openFileDialog.FileName;
+                    // DLL에서 호출
                     string jsonData = ExcelManager.ImportExcelToJson(filePath);
 
+                    // JSON에서 칼람명 변환 위해 Dictionary를 사용하시면 됩니다.
                     jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Value, kv.Key));
 
+                    // JSON을 역직렬화하여 올바른 DTO 객체 목록으로 뽑아냅니다. (List<EmployeeExcelDto>)
                     JsonSerializerSettings settings = new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error };
                     List<EmployeeExcelDto> newEmployeeDtos = JsonConvert.DeserializeObject<List<EmployeeExcelDto>>(jsonData, settings);
 

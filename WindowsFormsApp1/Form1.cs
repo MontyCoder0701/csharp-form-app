@@ -97,6 +97,7 @@ namespace WindowsFormsApp1
                 {
                     string filePath = saveFileDialog.FileName;
 
+                    // DTO와 칼람명 Dictionary를 활용하여 저장할 JSON 형태로 변환합니다.
                     List<EmployeeExcelDto> excelDtos = employees.ConvertAll(emp => new EmployeeExcelDto
                     {
                         EmplName = emp.EmplName,
@@ -110,7 +111,6 @@ namespace WindowsFormsApp1
                         GetDisplayIsSafe = emp.GetDisplayIsSafe
                     });
 
-                    // DTO와 칼람명 Dictionary를 활용하여 저장할 JSON 형태로 변환합니다.
                     string jsonData = JsonConvert.SerializeObject(excelDtos);
                     jsonData = ExcelHeaderDictionary.Aggregate(jsonData, (current, kv) => current.Replace(kv.Key, kv.Value));
 

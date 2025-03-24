@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExcelLib</name>
+    </assembly>
+    <members>
+        <member name="T:ExcelLib.ExcelManager">
+            <summary>
+            JSON 데이터를 Excel 파일로 내보내거나,
+            Excel 파일을 JSON 형식으로 불러오는 기능을 제공하는 클래스이다.
+            </summary>
+        </member>
+        <member name="M:ExcelLib.ExcelManager.ExportJsonToExcel(System.String,System.String)">
+            <summary>
+            JSON 데이터를 Excel 파일로 내보낸다.
+            </summary>
+            <param name="filePath">Excel 파일을 저장할 경로</param>
+            <param name="jsonData">Excel로 변환할 JSON 문자열</param>
+            <exception cref="T:System.ArgumentException">JSON 데이터에 유효한 헤더가 없을 경우 발생한다</exception>
+        </member>
+        <member name="M:ExcelLib.ExcelManager.ImportExcelToJson(System.String)">
+            <summary>
+            Excel 파일을 JSON 형식으로 변환하여 문자열로 반환한다.
+            </summary>
+            <param name="filePath">읽어올 Excel 파일의 경로</param>
+            <returns>Excel 데이터를 JSON 배열 형태의 문자열로 반환</returns>
+        </member>
+    </members>
+</doc>
